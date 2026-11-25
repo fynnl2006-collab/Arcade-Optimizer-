@@ -1,0 +1,1122 @@
+{
+ "spieler": {
+  "player_ab_20": {
+   "brier": 0.1586,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 1487,
+     "vorhergesagt": 0.021,
+     "eingetreten": 0.04
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 129,
+     "vorhergesagt": 0.086,
+     "eingetreten": 0.101
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 1128,
+     "vorhergesagt": 0.114,
+     "eingetreten": 0.1
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 165,
+     "vorhergesagt": 0.223,
+     "eingetreten": 0.152
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 1345,
+     "vorhergesagt": 0.465,
+     "eingetreten": 0.386
+    },
+    {
+     "von": 0.5,
+     "bis": 0.7,
+     "n": 1283,
+     "vorhergesagt": 0.593,
+     "eingetreten": 0.511
+    },
+    {
+     "von": 0.7,
+     "bis": 1,
+     "n": 5358,
+     "vorhergesagt": 0.805,
+     "eingetreten": 0.784
+    }
+   ]
+  },
+  "player_ab_40": {
+   "brier": 0.1609,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 2096,
+     "vorhergesagt": 0.017,
+     "eingetreten": 0.019
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 800,
+     "vorhergesagt": 0.071,
+     "eingetreten": 0.069
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 763,
+     "vorhergesagt": 0.152,
+     "eingetreten": 0.089
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 1264,
+     "vorhergesagt": 0.256,
+     "eingetreten": 0.202
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 3269,
+     "vorhergesagt": 0.402,
+     "eingetreten": 0.36
+    },
+    {
+     "von": 0.5,
+     "bis": 0.7,
+     "n": 2263,
+     "vorhergesagt": 0.581,
+     "eingetreten": 0.57
+    },
+    {
+     "von": 0.7,
+     "bis": 1,
+     "n": 440,
+     "vorhergesagt": 0.764,
+     "eingetreten": 0.684
+    }
+   ]
+  },
+  "player_ab_60": {
+   "brier": 0.0973,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 3403,
+     "vorhergesagt": 0.014,
+     "eingetreten": 0.019
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 1870,
+     "vorhergesagt": 0.076,
+     "eingetreten": 0.08
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 3203,
+     "vorhergesagt": 0.149,
+     "eingetreten": 0.142
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 1646,
+     "vorhergesagt": 0.242,
+     "eingetreten": 0.239
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 698,
+     "vorhergesagt": 0.36,
+     "eingetreten": 0.335
+    },
+    {
+     "von": 0.5,
+     "bis": 0.7,
+     "n": 69,
+     "vorhergesagt": 0.572,
+     "eingetreten": 0.609
+    },
+    {
+     "von": 0.7,
+     "bis": 1,
+     "n": 6,
+     "vorhergesagt": 0.764,
+     "eingetreten": 0.5
+    }
+   ]
+  },
+  "player_ab_80": {
+   "brier": 0.0272,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 8647,
+     "vorhergesagt": 0.012,
+     "eingetreten": 0.015
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 1530,
+     "vorhergesagt": 0.072,
+     "eingetreten": 0.067
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 634,
+     "vorhergesagt": 0.132,
+     "eingetreten": 0.104
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 70,
+     "vorhergesagt": 0.227,
+     "eingetreten": 0.186
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 14,
+     "vorhergesagt": 0.361,
+     "eingetreten": 0.214
+    }
+   ]
+  },
+  "player_ab_95": {
+   "brier": 0.0083,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 10600,
+     "vorhergesagt": 0.004,
+     "eingetreten": 0.007
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 251,
+     "vorhergesagt": 0.074,
+     "eingetreten": 0.072
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 43,
+     "vorhergesagt": 0.118,
+     "eingetreten": 0.0
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 1,
+     "vorhergesagt": 0.206,
+     "eingetreten": 0.0
+    }
+   ]
+  },
+  "pooled_ab_20": {
+   "brier": 0.1586,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 1487,
+     "vorhergesagt": 0.021,
+     "eingetreten": 0.04
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 128,
+     "vorhergesagt": 0.086,
+     "eingetreten": 0.102
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 1129,
+     "vorhergesagt": 0.114,
+     "eingetreten": 0.1
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 165,
+     "vorhergesagt": 0.223,
+     "eingetreten": 0.152
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 1348,
+     "vorhergesagt": 0.465,
+     "eingetreten": 0.386
+    },
+    {
+     "von": 0.5,
+     "bis": 0.7,
+     "n": 1278,
+     "vorhergesagt": 0.596,
+     "eingetreten": 0.505
+    },
+    {
+     "von": 0.7,
+     "bis": 1,
+     "n": 5360,
+     "vorhergesagt": 0.802,
+     "eingetreten": 0.785
+    }
+   ]
+  },
+  "pooled_ab_40": {
+   "brier": 0.1593,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 2094,
+     "vorhergesagt": 0.017,
+     "eingetreten": 0.019
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 782,
+     "vorhergesagt": 0.071,
+     "eingetreten": 0.064
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 754,
+     "vorhergesagt": 0.151,
+     "eingetreten": 0.089
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 1249,
+     "vorhergesagt": 0.255,
+     "eingetreten": 0.206
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 3366,
+     "vorhergesagt": 0.404,
+     "eingetreten": 0.356
+    },
+    {
+     "von": 0.5,
+     "bis": 0.7,
+     "n": 2386,
+     "vorhergesagt": 0.581,
+     "eingetreten": 0.574
+    },
+    {
+     "von": 0.7,
+     "bis": 1,
+     "n": 264,
+     "vorhergesagt": 0.754,
+     "eingetreten": 0.78
+    }
+   ]
+  },
+  "pooled_ab_60": {
+   "brier": 0.0969,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 3282,
+     "vorhergesagt": 0.014,
+     "eingetreten": 0.016
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 1672,
+     "vorhergesagt": 0.075,
+     "eingetreten": 0.07
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 3398,
+     "vorhergesagt": 0.148,
+     "eingetreten": 0.135
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 2001,
+     "vorhergesagt": 0.242,
+     "eingetreten": 0.251
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 529,
+     "vorhergesagt": 0.351,
+     "eingetreten": 0.389
+    },
+    {
+     "von": 0.5,
+     "bis": 0.7,
+     "n": 13,
+     "vorhergesagt": 0.528,
+     "eingetreten": 0.538
+    }
+   ]
+  },
+  "pooled_ab_80": {
+   "brier": 0.0266,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 8578,
+     "vorhergesagt": 0.016,
+     "eingetreten": 0.013
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 1668,
+     "vorhergesagt": 0.068,
+     "eingetreten": 0.064
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 578,
+     "vorhergesagt": 0.127,
+     "eingetreten": 0.125
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 56,
+     "vorhergesagt": 0.238,
+     "eingetreten": 0.339
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 15,
+     "vorhergesagt": 0.319,
+     "eingetreten": 0.133
+    }
+   ]
+  },
+  "pooled_ab_95": {
+   "brier": 0.008,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 10687,
+     "vorhergesagt": 0.006,
+     "eingetreten": 0.007
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 176,
+     "vorhergesagt": 0.067,
+     "eingetreten": 0.085
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 28,
+     "vorhergesagt": 0.141,
+     "eingetreten": 0.179
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 4,
+     "vorhergesagt": 0.208,
+     "eingetreten": 0.0
+    }
+   ]
+  },
+  "sorare_ab_20": {
+   "brier": 0.2187,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 693,
+     "vorhergesagt": 0.02,
+     "eingetreten": 0.025
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 50,
+     "vorhergesagt": 0.065,
+     "eingetreten": 0.0
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 326,
+     "vorhergesagt": 0.187,
+     "eingetreten": 0.08
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 1142,
+     "vorhergesagt": 0.251,
+     "eingetreten": 0.33
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 755,
+     "vorhergesagt": 0.484,
+     "eingetreten": 0.405
+    },
+    {
+     "von": 0.5,
+     "bis": 0.7,
+     "n": 7929,
+     "vorhergesagt": 0.557,
+     "eingetreten": 0.613
+    }
+   ]
+  },
+  "sorare_ab_40": {
+   "brier": 0.1829,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 777,
+     "vorhergesagt": 0.007,
+     "eingetreten": 0.005
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 508,
+     "vorhergesagt": 0.079,
+     "eingetreten": 0.026
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 1764,
+     "vorhergesagt": 0.162,
+     "eingetreten": 0.159
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 3200,
+     "vorhergesagt": 0.254,
+     "eingetreten": 0.244
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 4593,
+     "vorhergesagt": 0.364,
+     "eingetreten": 0.45
+    },
+    {
+     "von": 0.5,
+     "bis": 0.7,
+     "n": 53,
+     "vorhergesagt": 0.524,
+     "eingetreten": 0.792
+    }
+   ]
+  },
+  "sorare_ab_60": {
+   "brier": 0.102,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 1851,
+     "vorhergesagt": 0.021,
+     "eingetreten": 0.009
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 3687,
+     "vorhergesagt": 0.077,
+     "eingetreten": 0.085
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 4852,
+     "vorhergesagt": 0.137,
+     "eingetreten": 0.172
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 465,
+     "vorhergesagt": 0.226,
+     "eingetreten": 0.329
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 40,
+     "vorhergesagt": 0.323,
+     "eingetreten": 0.625
+    }
+   ]
+  },
+  "sorare_ab_80": {
+   "brier": 0.0271,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 9737,
+     "vorhergesagt": 0.019,
+     "eingetreten": 0.02
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 974,
+     "vorhergesagt": 0.066,
+     "eingetreten": 0.09
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 169,
+     "vorhergesagt": 0.127,
+     "eingetreten": 0.189
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 15,
+     "vorhergesagt": 0.214,
+     "eingetreten": 0.133
+    }
+   ]
+  },
+  "sorare_ab_95": {
+   "brier": 0.0081,
+   "n": 10895,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 10822,
+     "vorhergesagt": 0.006,
+     "eingetreten": 0.008
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 60,
+     "vorhergesagt": 0.066,
+     "eingetreten": 0.117
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 13,
+     "vorhergesagt": 0.114,
+     "eingetreten": 0.077
+    }
+   ]
+  }
+ },
+ "aufstellungen": {
+  "1": {
+   "n": 126,
+   "mittl_vorhergesagt": 0.323,
+   "geschafft_anteil": 0.421,
+   "brier": 0.1804,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 28,
+     "vorhergesagt": 0.021,
+     "eingetreten": 0.036
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 14,
+     "vorhergesagt": 0.068,
+     "eingetreten": 0.357
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 20,
+     "vorhergesagt": 0.153,
+     "eingetreten": 0.3
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 8,
+     "vorhergesagt": 0.258,
+     "eingetreten": 0.125
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 18,
+     "vorhergesagt": 0.389,
+     "eingetreten": 0.611
+    },
+    {
+     "von": 0.5,
+     "bis": 0.7,
+     "n": 18,
+     "vorhergesagt": 0.625,
+     "eingetreten": 0.667
+    },
+    {
+     "von": 0.7,
+     "bis": 1,
+     "n": 20,
+     "vorhergesagt": 0.79,
+     "eingetreten": 0.85
+    }
+   ],
+   "je_ziel": {
+    "260": {
+     "n": 21,
+     "vorhergesagt": 0.77,
+     "geschafft": 0.762
+    },
+    "300": {
+     "n": 21,
+     "vorhergesagt": 0.599,
+     "geschafft": 0.714
+    },
+    "360": {
+     "n": 21,
+     "vorhergesagt": 0.316,
+     "geschafft": 0.476
+    },
+    "400": {
+     "n": 21,
+     "vorhergesagt": 0.164,
+     "geschafft": 0.286
+    },
+    "440": {
+     "n": 21,
+     "vorhergesagt": 0.068,
+     "geschafft": 0.19
+    },
+    "480": {
+     "n": 21,
+     "vorhergesagt": 0.021,
+     "geschafft": 0.095
+    }
+   }
+  },
+  "2": {
+   "n": 126,
+   "mittl_vorhergesagt": 0.241,
+   "geschafft_anteil": 0.341,
+   "brier": 0.1633,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 46,
+     "vorhergesagt": 0.014,
+     "eingetreten": 0.022
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 15,
+     "vorhergesagt": 0.075,
+     "eingetreten": 0.333
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 12,
+     "vorhergesagt": 0.138,
+     "eingetreten": 0.333
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 10,
+     "vorhergesagt": 0.251,
+     "eingetreten": 0.3
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 12,
+     "vorhergesagt": 0.38,
+     "eingetreten": 0.583
+    },
+    {
+     "von": 0.5,
+     "bis": 0.7,
+     "n": 20,
+     "vorhergesagt": 0.582,
+     "eingetreten": 0.75
+    },
+    {
+     "von": 0.7,
+     "bis": 1,
+     "n": 11,
+     "vorhergesagt": 0.751,
+     "eingetreten": 0.727
+    }
+   ],
+   "je_ziel": {
+    "260": {
+     "n": 21,
+     "vorhergesagt": 0.675,
+     "geschafft": 0.81
+    },
+    "300": {
+     "n": 21,
+     "vorhergesagt": 0.474,
+     "geschafft": 0.524
+    },
+    "360": {
+     "n": 21,
+     "vorhergesagt": 0.191,
+     "geschafft": 0.333
+    },
+    "400": {
+     "n": 21,
+     "vorhergesagt": 0.078,
+     "geschafft": 0.238
+    },
+    "440": {
+     "n": 21,
+     "vorhergesagt": 0.024,
+     "geschafft": 0.143
+    },
+    "480": {
+     "n": 21,
+     "vorhergesagt": 0.005,
+     "geschafft": 0.0
+    }
+   }
+  },
+  "3": {
+   "n": 126,
+   "mittl_vorhergesagt": 0.21,
+   "geschafft_anteil": 0.262,
+   "brier": 0.1416,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 54,
+     "vorhergesagt": 0.013,
+     "eingetreten": 0.037
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 13,
+     "vorhergesagt": 0.075,
+     "eingetreten": 0.154
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 11,
+     "vorhergesagt": 0.14,
+     "eingetreten": 0.182
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 10,
+     "vorhergesagt": 0.24,
+     "eingetreten": 0.5
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 13,
+     "vorhergesagt": 0.41,
+     "eingetreten": 0.615
+    },
+    {
+     "von": 0.5,
+     "bis": 0.7,
+     "n": 19,
+     "vorhergesagt": 0.585,
+     "eingetreten": 0.526
+    },
+    {
+     "von": 0.7,
+     "bis": 1,
+     "n": 6,
+     "vorhergesagt": 0.736,
+     "eingetreten": 0.667
+    }
+   ],
+   "je_ziel": {
+    "260": {
+     "n": 21,
+     "vorhergesagt": 0.628,
+     "geschafft": 0.619
+    },
+    "300": {
+     "n": 21,
+     "vorhergesagt": 0.413,
+     "geschafft": 0.524
+    },
+    "360": {
+     "n": 21,
+     "vorhergesagt": 0.148,
+     "geschafft": 0.238
+    },
+    "400": {
+     "n": 21,
+     "vorhergesagt": 0.054,
+     "geschafft": 0.19
+    },
+    "440": {
+     "n": 21,
+     "vorhergesagt": 0.014,
+     "geschafft": 0.0
+    },
+    "480": {
+     "n": 21,
+     "vorhergesagt": 0.002,
+     "geschafft": 0.0
+    }
+   }
+  },
+  "mind. eine von 3": {
+   "n": 126,
+   "mittl_vorhergesagt": 0.454,
+   "geschafft_anteil": 0.54,
+   "brier": 0.1773,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 22,
+     "vorhergesagt": 0.021,
+     "eingetreten": 0.045
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 13,
+     "vorhergesagt": 0.076,
+     "eingetreten": 0.308
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 12,
+     "vorhergesagt": 0.146,
+     "eingetreten": 0.333
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 12,
+     "vorhergesagt": 0.257,
+     "eingetreten": 0.5
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 12,
+     "vorhergesagt": 0.395,
+     "eingetreten": 0.583
+    },
+    {
+     "von": 0.5,
+     "bis": 0.7,
+     "n": 13,
+     "vorhergesagt": 0.603,
+     "eingetreten": 0.692
+    },
+    {
+     "von": 0.7,
+     "bis": 1,
+     "n": 42,
+     "vorhergesagt": 0.913,
+     "eingetreten": 0.881
+    }
+   ],
+   "je_ziel": {
+    "260": {
+     "n": 21,
+     "vorhergesagt": 0.964,
+     "geschafft": 0.905
+    },
+    "300": {
+     "n": 21,
+     "vorhergesagt": 0.856,
+     "geschafft": 0.857
+    },
+    "360": {
+     "n": 21,
+     "vorhergesagt": 0.51,
+     "geschafft": 0.619
+    },
+    "400": {
+     "n": 21,
+     "vorhergesagt": 0.264,
+     "geschafft": 0.524
+    },
+    "440": {
+     "n": 21,
+     "vorhergesagt": 0.102,
+     "geschafft": 0.238
+    },
+    "480": {
+     "n": 21,
+     "vorhergesagt": 0.028,
+     "geschafft": 0.095
+    }
+   }
+  },
+  "sorare-max": {
+   "n": 126,
+   "mittl_vorhergesagt": 0.312,
+   "geschafft_anteil": 0.421,
+   "brier": 0.1882,
+   "kalibrierung": [
+    {
+     "von": 0,
+     "bis": 0.05,
+     "n": 29,
+     "vorhergesagt": 0.021,
+     "eingetreten": 0.069
+    },
+    {
+     "von": 0.05,
+     "bis": 0.1,
+     "n": 14,
+     "vorhergesagt": 0.067,
+     "eingetreten": 0.286
+    },
+    {
+     "von": 0.1,
+     "bis": 0.2,
+     "n": 19,
+     "vorhergesagt": 0.149,
+     "eingetreten": 0.263
+    },
+    {
+     "von": 0.2,
+     "bis": 0.3,
+     "n": 11,
+     "vorhergesagt": 0.257,
+     "eingetreten": 0.364
+    },
+    {
+     "von": 0.3,
+     "bis": 0.5,
+     "n": 16,
+     "vorhergesagt": 0.397,
+     "eingetreten": 0.625
+    },
+    {
+     "von": 0.5,
+     "bis": 0.7,
+     "n": 19,
+     "vorhergesagt": 0.614,
+     "eingetreten": 0.684
+    },
+    {
+     "von": 0.7,
+     "bis": 1,
+     "n": 18,
+     "vorhergesagt": 0.781,
+     "eingetreten": 0.833
+    }
+   ],
+   "je_ziel": {
+    "260": {
+     "n": 21,
+     "vorhergesagt": 0.746,
+     "geschafft": 0.81
+    },
+    "300": {
+     "n": 21,
+     "vorhergesagt": 0.578,
+     "geschafft": 0.619
+    },
+    "360": {
+     "n": 21,
+     "vorhergesagt": 0.303,
+     "geschafft": 0.524
+    },
+    "400": {
+     "n": 21,
+     "vorhergesagt": 0.157,
+     "geschafft": 0.286
+    },
+    "440": {
+     "n": 21,
+     "vorhergesagt": 0.065,
+     "geschafft": 0.19
+    },
+    "480": {
+     "n": 21,
+     "vorhergesagt": 0.02,
+     "geschafft": 0.095
+    }
+   }
+  }
+ }
+}

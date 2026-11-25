@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Set-Optimierer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* VOICE matchday tool for a Sorare Set player: confident, sporty, tidy
+   IDEA a team sheet on the pitch: the suggested five laid out in formation as collectible cards
+   PICTURE a striped pitch with chalk lines and five edition-styled card tiles in formation
+   COLOUR deep pitch green ground, chalk white, lime for chance and captain, coral for doubtful; card editions in their own finishes
+   TYPE Barlow Condensed 700/800 for names and figures + Inter for text
+   LAYOUT sticky nav; hero = status, chance ring and controls left, pitch right; sections below in full-width bands; phone stacks status, pitch, controls */
+:root{color-scheme:light dark;--bg:light-dark(#f6f8f5,#08130e);--paper:light-dark(#ffffff,#0f1f18);--ink:light-dark(#0f1d16,#e9f2ed);--mute:light-dark(#5a6d63,#97ada2);--line:light-dark(#dde6e0,#1f3429);--g1:#0b3d2c;--g2:#0e4a35;--g3:#125a40;--chalk:#eef6f0;--lime:#c9f06a;--acc:light-dark(#2c8a28,#c9f06a);--warn:#ff5b45;--track:light-dark(#e2eae5,#1b3027)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{scroll-padding-top:110px;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3,.d{font-family:"Barlow Condensed","Arial Narrow","Roboto Condensed",Inter,sans-serif;letter-spacing:-.01em;line-height:1.02}
+h1{font-size:clamp(36px,5vw,52px);font-weight:800;margin:0;text-wrap:balance}
+h2{font-size:clamp(28px,3.4vw,38px);font-weight:700;margin:0 0 6px}
+h3{font-size:22px;font-weight:700;margin:0}
+p{margin:0}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:0 max(4vw,16px)}
+.band{padding:clamp(36px,5vw,72px) 0}
+.lead{color:var(--mute);max-width:64ch;margin-bottom:22px}
+.mute{color:var(--mute)}
+/* nav */
+nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--g1) 94%,transparent);backdrop-filter:blur(8px);color:var(--chalk);border-bottom:1px solid #ffffff18}
+nav .wrap{display:flex;align-items:center;gap:18px;min-height:62px}
+.brand{display:flex;align-items:center;gap:10px;font:800 24px "Barlow Condensed",sans-serif;text-decoration:none;white-space:nowrap}
+.brand i{width:30px;height:30px;border-radius:8px;background:var(--lime);display:grid;place-items:center;color:var(--g1);font-style:normal;font-size:19px}
+.links{display:flex;gap:4px;overflow-x:auto;flex:1;scrollbar-width:none}
+.links a{flex:none;text-decoration:none;padding:8px 12px;border-radius:8px;white-space:nowrap;font-size:15px;color:#cfe2d7}
+.links a:hover{background:#ffffff14;color:#fff}
+.nb{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:44px;min-height:44px;padding:0 12px;border-radius:10px;border:1px solid #ffffff33;background:transparent;color:var(--chalk);cursor:pointer;font-weight:600;position:relative}
+.nb:focus-visible,.chip:focus-visible,input:focus-visible,.daycol:focus-visible{outline:3px solid var(--lime);outline-offset:2px}
+.nb em{position:absolute;top:-6px;right:-6px;background:var(--warn);color:#fff;font:600 12px Inter,sans-serif;min-width:20px;height:20px;border-radius:10px;display:grid;place-items:center;padding:0 5px}
+.nb em[hidden]{display:none}
+.notes{position:absolute;right:max(4vw,16px);top:66px;width:min(420px,calc(100vw - 32px));background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 40px #0004;padding:16px}
+.notes[hidden]{display:none}
+.notes ul{list-style:none;margin:10px 0;padding:0;max-height:50vh;overflow:auto}
+.notes li{padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+.notes li.u{font-weight:600}
+/* hero */
+.hero{background:var(--g1);color:var(--chalk);padding:clamp(28px,4vw,56px) 0 clamp(36px,5vw,64px)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(24px,4vw,56px);align-items:start}
+.kicker{color:#b9d6c6;font-size:15px;margin-bottom:8px}
+.ladder{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin:20px 0}
+.st{border-radius:10px;padding:7px 4px;text-align:center;background:#ffffff10;border:1px solid #ffffff1c;font-size:12px;color:#bcd5c8}
+.st b{display:block;font:700 22px "Barlow Condensed",sans-serif;color:#fff}
+.st.done{opacity:.5}
+.st.cur{background:var(--lime);border-color:var(--lime);color:var(--g1)}
+.st.cur b{color:var(--g1)}
+.score{display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:center;margin:8px 0 22px}
+.ring{--p:0;width:150px;aspect-ratio:1;border-radius:50%;background:conic-gradient(var(--lime) calc(var(--p)*1turn),#ffffff1f 0);display:grid;place-items:center}
+.ring div{width:78%;aspect-ratio:1;border-radius:50%;background:var(--g1);display:grid;place-content:center;text-align:center}
+.ring .d{font-size:46px;font-weight:800}
+.ring small{font-size:12px;color:#b9d6c6}
+.facts{display:grid;gap:4px;font-size:15px;color:#cfe2d7}
+.facts b{color:#fff;font-weight:600}
+.panel{background:#ffffff0d;border:1px solid #ffffff1f;border-radius:16px;padding:16px;display:grid;gap:14px}
+.lbl{display:block;font-size:13px;color:#b9d6c6;margin-bottom:6px}
+.chips{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.chip{min-height:44px;border-radius:10px;border:1px solid #ffffff2e;background:#ffffff0f;color:var(--chalk);cursor:pointer;font:700 20px "Barlow Condensed",sans-serif}
+.chip[aria-pressed=true]{background:var(--lime);color:var(--g1);border-color:var(--lime)}
+input[type=range]{width:100%;height:44px;accent-color:var(--lime);margin:0}
+.row2{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.sw{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:15px}
+.sw input{width:22px;height:22px;accent-color:var(--warn)}
+.lives{display:inline-flex;align-items:center;gap:8px}
+.lives button{width:36px;height:36px;border-radius:9px;border:1px solid #ffffff33;background:transparent;color:var(--chalk);cursor:pointer;font-size:18px}
+/* pitch */
+.pitch{position:relative;border-radius:18px;padding:22px 14px;background:repeating-linear-gradient(180deg,var(--g3) 0 56px,#16664a 56px 112px);box-shadow:inset 0 0 0 2px #ffffff2a,0 20px 40px #0005;overflow:hidden}
+.pitch svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.form{position:relative;display:grid;gap:16px}
+.line{display:flex;justify-content:center;gap:clamp(10px,3vw,34px)}
+.tag-row{position:relative;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:#d7eadf;font-size:14px;gap:10px;flex-wrap:wrap}
+/* card tile */
+.cd{--fg:#14211b;position:relative;width:clamp(118px,13vw,142px);aspect-ratio:5/7;border-radius:12px;padding:8px;display:flex;flex-direction:column;color:var(--fg);box-shadow:0 10px 18px #0006,inset 0 0 0 1px #ffffff66;overflow:hidden;text-decoration:none}
+.cd::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,#ffffff55 48%,transparent 60%);pointer-events:none}
+.cd .top{display:flex;justify-content:space-between;align-items:center;gap:4px;font:700 14px "Barlow Condensed",sans-serif;letter-spacing:.03em}
+.cd .pos{background:#0b3d2ce0;color:#eef6f0;border-radius:5px;padding:1px 6px}
+.cd .ed{font:600 10px Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;text-align:center;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cd .mono{margin:auto;width:52%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font:800 clamp(22px,2.4vw,28px) "Barlow Condensed",sans-serif;background:#ffffff66;box-shadow:inset 0 0 0 2px #ffffff99}
+.cd .nm{font:700 17px/1 "Barlow Condensed",sans-serif;text-align:center;min-height:2em;display:grid;place-items:center;overflow-wrap:anywhere}
+.cd .bt{display:flex;justify-content:space-between;align-items:baseline;margin-top:4px;font-size:12px}
+.cd .bt b{font:800 24px "Barlow Condensed",sans-serif}
+.cap{position:absolute;top:32px;right:8px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--lime);color:var(--g1);font:800 15px "Barlow Condensed",sans-serif;box-shadow:0 2px 6px #0005,inset 0 0 0 2px #0b3d2c;z-index:2}
+.dbt{position:absolute;left:8px;bottom:42px;background:var(--warn);color:#fff;font:600 10px Inter,sans-serif;padding:1px 5px;border-radius:4px}
+.e-Standard{background:linear-gradient(160deg,#f1f4f6,#c7d1d8)}
+.e-Shiny{background:linear-gradient(135deg,#f6f8fa 0%,#ced6dc 38%,#ffffff 50%,#b9c3cb 62%,#eef1f4 100%)}
+.e-Holo{background:linear-gradient(135deg,#ffd6ec,#c9efff 30%,#dcffd2 55%,#fff1c2 80%,#ffd6ec)}
+.e-Four{background:radial-gradient(circle at 20% 20%,#ffffffaa 0 6%,transparent 7%) 0 0/28px 28px,linear-gradient(135deg,#eef2f5,#bcc6ce 50%,#f4f6f8)}
+.e-Eclipse{--fg:#eef6f0;background:linear-gradient(135deg,#0f2a3d,#1f5068 45%,#0e3c45 70%,#2b6b73)}
+.e-Eclipse .mono{background:#ffffff1f;box-shadow:inset 0 0 0 2px #ffffff55}
+.e-Action{background:linear-gradient(135deg,#d6eeff,#8cc3ff 45%,#e8f6ff)}
+.e-Legendary{background:linear-gradient(135deg,#fff3c2,#f2c94c 40%,#c8961a 68%,#ffe397)}
+.cd.sm{width:100%;aspect-ratio:auto;min-height:168px;padding:6px}
+.cd.sm .mono{width:62%;font-size:20px;margin:6px auto}
+.cd.sm .nm{font-size:15px}
+.cd.sm .bt b{font-size:20px}
+.cd.sm .cap{top:28px;right:5px;width:22px;height:22px;font-size:13px}
+.cd.sm .top{font-size:12px}
+/* sections */
+.cards5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.det{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.det li{display:grid;grid-template-columns:50px minmax(0,1fr) auto;gap:4px 14px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.det .sw2{width:50px;height:70px;border-radius:8px;box-shadow:inset 0 0 0 1px #0000001a;display:grid;place-items:center;font:800 22px "Barlow Condensed",sans-serif;color:#14211b}
+.det .sw2.e-Eclipse{color:#eef6f0}
+.det h3 b{font-weight:700}
+.det li{grid-template-areas:"sw main num" "sw why lnk"}
+.det .sw2{grid-area:sw}.det .main{grid-area:main}.det .num{grid-area:num}.det .why{grid-area:why;font-size:14px;color:var(--mute)}.det .lnk{grid-area:lnk;font-size:13px;color:var(--acc);text-align:right;white-space:nowrap}
+.det .meta{font-size:14px;color:var(--mute)}
+.det .num{text-align:right;white-space:nowrap}
+.det .num b{display:block;font:800 30px "Barlow Condensed",sans-serif}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--track);white-space:nowrap;vertical-align:middle}
+.pill.w{background:var(--warn);color:#fff}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:18px}
+.box .hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px}
+.box .hd .d{flex:none;font-size:clamp(30px,4vw,40px);font-weight:800}
+.strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.days{display:flex;align-items:flex-end;gap:10px;height:240px;padding-top:24px}
+.daycol{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;border:0;background:none;cursor:pointer;border-radius:10px;padding:4px 0}
+.daycol .bars{position:relative;width:min(56px,80%);flex:1;display:flex;align-items:flex-end}
+.daycol .a{position:absolute;bottom:0;left:0;right:0;background:color-mix(in srgb,var(--acc) 35%,transparent);border-radius:8px 8px 0 0}
+.daycol .b{position:absolute;bottom:0;left:18%;right:18%;background:var(--acc);border-radius:6px 6px 0 0}
+.daycol .v{font:700 18px "Barlow Condensed",sans-serif;white-space:nowrap}
+.daycol .l{font-size:13px;color:var(--mute);white-space:nowrap}
+.daycol[aria-pressed=true]{background:color-mix(in srgb,var(--acc) 10%,transparent)}
+.daycol[aria-pressed=true] .l{color:var(--ink);font-weight:700}
+.legend{display:flex;gap:16px;font-size:14px;color:var(--mute);margin-top:10px;flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.alt{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.alt li{display:grid;grid-template-columns:7em minmax(0,1fr);gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.alt .o{display:flex;justify-content:space-between;gap:4px 10px;flex-wrap:wrap;font-size:15px}
+.alt .o span:last-child{white-space:nowrap;color:var(--mute)}
+.up{color:var(--acc);font-weight:600}
+.bad{color:var(--warn);font-weight:600}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.fchip{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--paper);cursor:pointer;font-weight:600}
+.fchip[aria-pressed=true]{background:var(--g1);color:var(--chalk);border-color:var(--g1)}
+.filters input{min-height:44px;flex:1 1 220px;border:1px solid var(--line);border-radius:999px;padding:0 16px;background:var(--paper);font-size:16px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:12px}
+.pc{display:grid;grid-template-columns:54px minmax(0,1fr);gap:12px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px}
+.pc .sw2{width:54px;height:72px;border-radius:9px;box-shadow:inset 0 0 0 1px #0000001a;display:grid;place-items:center;font:800 20px "Barlow Condensed",sans-serif;color:#14211b}
+.pc .sw2.e-Eclipse{color:#eef6f0}
+.pc h3{font-size:19px}
+.pc .m{font-size:13px;color:var(--mute)}
+.pc .k{display:flex;gap:12px;font-size:13px;margin-top:4px;flex-wrap:wrap}
+.pc .k b{font:800 20px "Barlow Condensed",sans-serif}
+.hr{display:grid;gap:12px}
+.hrow{display:grid;grid-template-columns:5.5em minmax(0,1fr) auto;gap:12px;align-items:center;font-size:15px}
+.hrow .t{position:relative;height:16px;background:var(--track);border-radius:8px;overflow:hidden}
+.hrow .t i{position:absolute;inset:0 auto 0 0;border-radius:8px}
+.hrow .v{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--mute)}
+footer{background:var(--g1);color:#b9d6c6;font-size:14px;padding:32px 0}
+.empty{color:var(--mute)}
+@media(max-width:1000px){.hero .wrap{grid-template-columns:minmax(0,1fr)}.cards5{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}.strip{grid-template-columns:repeat(3,minmax(0,1fr))}nav .wrap{flex-wrap:wrap;gap:8px 12px}.links{order:3;flex-basis:100%;margin:0 -8px;padding-bottom:6px}.brand{flex:1}.det li{grid-template-columns:42px minmax(0,1fr) auto;gap:6px 10px;padding:12px}.det .sw2{width:42px;height:58px;font-size:17px;grid-row:auto}.det li{grid-template-areas:"sw main num" "why why why" "lnk lnk lnk"}.det .lnk{text-align:left;min-height:32px;display:flex;align-items:center}}
+@media(max-width:600px){.score{grid-template-columns:112px minmax(0,1fr)}.ring{width:112px}.ring .d{font-size:30px}.ring small{display:none}.cd{width:clamp(104px,30vw,126px)}.cd .nm{font-size:15px}.cd .bt b{font-size:20px}.line{gap:8px}.days{height:200px;gap:4px}.daycol .v{font-size:15px}.daycol .l{font-size:11px}.alt li{grid-template-columns:minmax(0,1fr)}.st{font-size:10px;padding:5px 2px}.st b{font-size:18px}.chip{font-size:17px}}
+@media(prefers-reduced-motion:no-preference){.ring{transition:--p .5s}.cd{transition:transform .2s}.cd:hover{transform:translateY(-3px)}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top"><i>S</i><span id="t-brand">Set-Optimierer</span></a>
+    <div class="links" id="links"></div>
+    <button class="nb" id="bell" aria-expanded="false" aria-controls="notes"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><em id="bell-n" hidden></em></button>
+    <button class="nb" id="lang" aria-label="Sprache / language">EN</button>
+  </div>
+  <div class="notes" id="notes" hidden></div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <p class="kicker" id="kicker"></p>
+      <h1 id="headline"></h1>
+      <div class="ladder" id="ladder"></div>
+      <div class="score"><div class="ring" id="ring"><div><span class="d" id="ringv"></span><small id="ringl"></small></div></div><div class="facts" id="facts"></div></div>
+      <div class="panel">
+        <div><span class="lbl" id="t-target"></span><div class="chips" id="targets"></div></div>
+        <div><label class="lbl" for="day" id="t-until"></label><input type="range" id="day" min="0" max="0" step="1" value="0"><div class="row2"><b id="dayl"></b><span class="lives" id="lives"></span></div></div>
+        <label class="sw" for="dbt"><input type="checkbox" id="dbt"><span id="t-dbt"></span></label>
+      </div>
+    </div>
+    <div>
+      <div class="pitch" id="aufstellung">
+        <svg viewBox="0 0 100 140" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#ffffff55" stroke-width=".5" vector-effect="non-scaling-stroke"><rect x="4" y="4" width="92" height="132" rx="1"/><line x1="4" y1="70" x2="96" y2="70"/><circle cx="50" cy="70" r="11"/><rect x="25" y="4" width="50" height="20"/><rect x="25" y="116" width="50" height="20"/><rect x="38" y="4" width="24" height="7"/><rect x="38" y="129" width="24" height="7"/></g></svg>
+        <div class="tag-row" id="pitchhead"></div>
+        <div class="form" id="form"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="band"><div class="wrap">
+    <h2 id="t-detail"></h2><p class="lead" id="detail-lead"></p>
+    <ul class="det" id="detail"></ul>
+  </div></section>
+
+  <section class="band" id="weitere" style="padding-top:0"><div class="wrap">
+    <h2 id="t-more"></h2><p class="lead" id="more-lead"></p>
+    <div class="grid2" id="more"></div>
+  </div></section>
+
+  <section class="band" id="zeit" style="background:var(--paper);border-block:1px solid var(--line)"><div class="wrap grid2">
+    <div><h2 id="t-time"></h2><p class="lead" id="time-lead"></p><div class="days" id="days"></div><div class="legend" id="days-leg"></div></div>
+    <div><h2 id="t-alts"></h2><p class="lead" id="alts-lead"></p><ul class="alt" id="alts"></ul></div>
+  </div></section>
+
+  <section class="band" id="laufend"><div class="wrap">
+    <h2 id="t-mine"></h2><p class="lead" id="mine-lead"></p>
+    <div class="grid2" id="mine"></div>
+  </div></section>
+
+  <section class="band" id="spieler" style="padding-top:0"><div class="wrap">
+    <h2 id="t-players"></h2><p class="lead" id="players-lead"></p>
+    <div class="filters" id="filters"></div>
+    <div class="pgrid" id="pgrid"></div>
+  </div></section>
+
+  <section class="band" id="treffer" style="background:var(--paper);border-top:1px solid var(--line)"><div class="wrap grid2">
+    <div><h2 id="t-hit"></h2><p class="lead" id="hit-lead"></p><p class="mute" id="hit-live"></p></div>
+    <div><div class="hr" id="hit"></div><div class="legend" id="hit-leg"></div></div>
+  </div></section>
+</main>
+<footer><div class="wrap" id="foot"></div></footer>
+
+<script>
+{
+const UI={
+de:{brand:"Set-Optimierer",nav:[["aufstellung","Aufstellung"],["weitere","Weitere"],["zeit","Zeit & Alternativen"],["laufend","Laufend"],["spieler","Spieler"],["treffer","Trefferquote"]],kicker:"Set {set} · Fußball · Stand {t}",head_reset:"Neustart auf Stufe 1: {t} Punkte",head_cur:"Stufe {l}: {t} Punkte",ring:"Chance",f_exp:"Erwartet {v} Punkte",f_rng:"80 % der Fälle zwischen {a} und {b}",f_lock:"Sperre {t}",f_last:"letztes Spiel {t}",target:"Stufenziel",until:"Spiele bis",lives:"Leben",pitch:"Beste Aufstellung",pitch_ok:"Kapitän: {c}",detail:"Die Aufstellung im Detail",detail_lead:"Genau diese Karten aus deiner Galerie. Ein Tipp auf „In Sorare öffnen“ zeigt die Karte in Sorare.",open:"In Sorare öffnen",more:"Aufstellung 2 und 3",more_lead:"Sie ergänzen die beste Aufstellung: Gesucht ist die Chance, dass mindestens eine das Ziel schafft.",together:"mit den vorigen zusammen: {p}",time:"Zeit gegen Chance",time_lead:"Bis zu welchem Tag sollen die Spiele laufen? Tippe auf einen Tag.",best:"beste Aufstellung",anyn:"mindestens eine von {n}",alts:"Alternativen",alts_lead:"Was passiert, wenn du einen Spieler der besten Aufstellung tauschst?",equal:"gleichwertig",pp:"Pkt.",mine:"Laufende Aufstellungen",mine_lead:"Deine gestellten Aufstellungen auf der aktuellen Stufe, live gerechnet.",no_mine:"Keine laufenden Aufstellungen.",pts:"{a} Punkte, noch {b} nötig",locked:"gesperrt",open_l:"änderbar",players:"Spieler",players_lead:"Die stärksten Karten für den gewählten Zeitraum.",search:"Spieler suchen",all:"Alle",pos_G:"Torwart",pos_D:"Abwehr",pos_M:"Mittelfeld",pos_F:"Sturm",ps_G:"TW",ps_D:"ABW",ps_M:"MF",ps_F:"ST",ps_X:"EXT",exp:"erwartet",plays:"spielt",c100:"100+ Pkt.",hit:"Trefferquote",hit_lead:"Backtest 30.10.–24.11.2026 mit bekannter Startelf ({n} Fälle): beste Aufstellung im Schnitt {a} vorhergesagt, {b} geschafft. Mindestens eine von 3: {c} vorhergesagt, {d} geschafft. Vor Bekanntgabe der Startelf: {e} vorhergesagt, {f} geschafft.",hit_live:"Die echte Trefferquote startet mit den ab heute protokollierten Vorschlägen.",pred:"vorhergesagt",real:"geschafft",notes:"Meldungen",no_notes:"Keine Meldungen.",read:"Alle gelesen",foot:"Set-Optimierer · Daten: Sorare-API (Prognosen, Noten, Verletzungen) · Zeiten in deutscher Zeit · Chancen sind Simulationen, keine Garantie. Kein offizielles Sorare-Produkt.",early:"vor Startelf",late:"Startelf bekannt",none:"Für diese Auswahl gibt es keine Aufstellung.",dbt_note:"Fragliche Spieler zählen als fit – riskanter.",cap:"K",st_FINAL:"fertig",st_REVIEWING:"fertig",st_PENDING:"offen",st_DID_NOT_PLAY:"nicht gespielt",lu:"Aufstellung {n}"},
+en:{brand:"Set Optimizer",nav:[["aufstellung","Lineup"],["weitere","More"],["zeit","Time & swaps"],["laufend","Running"],["spieler","Players"],["treffer","Hit rate"]],kicker:"Set {set} · Football · As of {t}",head_reset:"Restart at step 1: {t} points",head_cur:"Step {l}: {t} points",ring:"Chance",f_exp:"Expected {v} points",f_rng:"80% of cases between {a} and {b}",f_lock:"Locks {t}",f_last:"last game {t}",target:"Step target",until:"Games until",lives:"Lives",pitch:"Best lineup",pitch_ok:"Captain: {c}",detail:"The lineup in detail",detail_lead:"Exactly these cards from your gallery. Tap “Open in Sorare” to see the card in Sorare.",open:"Open in Sorare",more:"Lineups 2 and 3",more_lead:"They complement the best lineup: the goal is the chance that at least one hits the target.",together:"together with the ones before: {p}",time:"Time vs. chance",time_lead:"Up to which day should the games run? Tap a day.",best:"best lineup",anyn:"at least one of {n}",alts:"Alternatives",alts_lead:"What happens if you swap a player of the best lineup?",equal:"on par",pp:"pts",mine:"Running lineups",mine_lead:"Your lineups on the current step, calculated live.",no_mine:"No running lineups.",pts:"{a} points, {b} still needed",locked:"locked",open_l:"editable",players:"Players",players_lead:"The strongest cards for the chosen period.",search:"Search players",all:"All",pos_G:"Goalkeeper",pos_D:"Defender",pos_M:"Midfielder",pos_F:"Forward",ps_G:"GK",ps_D:"DEF",ps_M:"MID",ps_F:"FWD",ps_X:"EXT",exp:"expected",plays:"plays",c100:"100+ pts",hit:"Hit rate",hit_lead:"Backtest 30 Oct–24 Nov 2026 with known lineups ({n} cases): best lineup predicted {a} on average, {b} hit. At least one of 3: {c} predicted, {d} hit. Before lineups are known: {e} predicted, {f} hit.",hit_live:"The live hit rate starts with the suggestions logged from today.",pred:"predicted",real:"hit",notes:"Alerts",no_notes:"No alerts.",read:"Mark all read",foot:"Set Optimizer · Data: Sorare API (projections, grades, injuries) · Times in German time · Chances are simulations, not guarantees. Not an official Sorare product.",early:"before lineups",late:"lineups known",none:"No lineup for this selection.",dbt_note:"Doubtful players count as fit – riskier.",cap:"C",st_FINAL:"final",st_REVIEWING:"final",st_PENDING:"pending",st_DID_NOT_PLAY:"did not play",lu:"Lineup {n}"}
+};
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store={get(k,d){try{const v=localStorage.getItem("setopt_"+k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("setopt_"+k,JSON.stringify(v))}catch(e){}}};
+let D=null;
+const S={lang:store.get("lang",(navigator.language||"de").toLowerCase().startsWith("de")?"de":"en"),T:null,day:0,dbt:store.get("dbt",false),lives:4,pos:"all",q:""};
+const tr=(k,p)=>{const t=UI[S.lang][k]??D?.i18n?.[S.lang]?.[k]??k;return p?String(t).replace(/\{(\w+)\}/g,(m,x)=>p[x]??""):t};
+const pct=p=>new Intl.NumberFormat(S.lang,{style:"percent",maximumFractionDigits:(p>0&&p<.1)||(p>.99&&p<1)?1:0}).format(p);
+const num=v=>new Intl.NumberFormat(S.lang,{maximumFractionDigits:0}).format(v);
+const fmt=(iso,o)=>new Intl.DateTimeFormat(S.lang,Object.assign({timeZone:"Europe/Berlin"},o)).format(new Date(iso));
+const when=iso=>fmt(iso,{weekday:"short",hour:"2-digit",minute:"2-digit"});
+const dayLong=d=>fmt(d+"T12:00:00Z",{weekday:"long",day:"numeric",month:"numeric"});
+const dayShort=d=>fmt(d+"T12:00:00Z",{weekday:"short",day:"numeric",month:"numeric"});
+const initials=n=>String(n).split(/[\s -]+/).filter(Boolean).map(w=>w[0]).slice(0,2).join("").toUpperCase();
+const edc=e=>"e-"+String(e||"Standard").split(" ")[0];
+const sorareUrl=s=>"https://sorare.com/football/cards/"+encodeURIComponent(s);
+const reason=w=>{const p=Object.assign({},w);if(p.until)p.until=fmt(p.until,{day:"numeric",month:"numeric"});if(p.goals!=null)p.goals=new Intl.NumberFormat(S.lang).format(p.goals);if(p.avg!=null)p.avg=new Intl.NumberFormat(S.lang).format(p.avg);return tr(w.key,p)};
+const sug=(day=S.day)=>{const v=D.sugg[S.dbt?"1":"0"][String(S.T)];return v?v[D.days[day]]:null};
+const nL=()=>Math.max(0,Math.min(3,S.lives));
+const posOf=slot=>({GK:"G",DEF:"D",MID:"M",FWD:"F"})[slot];
+const noteId=n=>n.time+n.player+n.key;
+
+function card(id,slot,cap,cs,ed,b){
+  const it=D.items[id];const e=ed||it.ed;const bb=b??it.b;
+  const mult=cap?(1+bb+.5)/(1+it.b):(1+bb)/(1+it.b);
+  return `<a class="cd ${edc(e)}" href="${esc(sorareUrl(cs||""))}" target="_blank" rel="noopener" title="${esc(tr("open"))}">${cap?`<span class="cap">${esc(tr("cap"))}</span>`:""}
+<span class="top"><span class="pos">${esc(tr("ps_"+it.pos))}</span><span>${bb?"+"+Math.round(bb*100)+"%":""}</span></span>
+<span class="mono">${esc(initials(it.n))}</span>${it.dbt?`<span class="dbt">${esc(tr("doubtful_tag"))}</span>`:""}
+<span class="nm">${esc(it.n)}</span><span class="ed">${esc(e)}</span>
+<span class="bt"><span>${esc(tr("exp"))}</span><b>${num(it.mean*mult)}</b></span></a>`;
+}
+
+function renderNav(){
+  document.documentElement.lang=S.lang;$("lang").textContent=S.lang==="de"?"EN":"DE";$("t-brand").textContent=tr("brand");
+  $("links").innerHTML=tr("nav").map(([h,l])=>`<a href="#${h}">${esc(l)}</a>`).join("");
+  const rs=new Set(store.get("read",[]));const un=D.notes.filter(n=>!rs.has(noteId(n))).length;
+  $("bell-n").hidden=!un;$("bell-n").textContent=un;$("bell").setAttribute("aria-label",tr("notes"));
+  $("notes").innerHTML=`<h3>${esc(tr("notes"))}</h3>`+(D.notes.length?`<ul>${D.notes.slice().reverse().map(n=>{const p=Object.assign({},n);if(p.until)p.until=fmt(p.until,{day:"numeric",month:"numeric"});return `<li class="${rs.has(noteId(n))?"":"u"}">${esc(tr(n.key,p))} · ${esc(when(n.date))}</li>`}).join("")}</ul><button class="fchip" id="readall">${esc(tr("read"))}</button>`:`<p class="empty">${esc(tr("no_notes"))}</p>`);
+  const ra=$("readall");if(ra)ra.onclick=()=>{store.set("read",D.notes.map(noteId));renderNav()};
+}
+
+function renderHero(){
+  const reset=D.focus.key==="focus_after_reset";
+  $("kicker").textContent=tr("kicker",{set:D.set.name,t:fmt(D.time,{weekday:"short",day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})});
+  $("headline").textContent=reset&&S.T===D.focus.target?tr("head_reset",{t:num(S.T)}):tr("head_cur",{l:D.targets.indexOf(S.T)+1,t:num(S.T)});
+  const cur=D.board.current;
+  $("ladder").innerHTML=D.board.steps.map(s=>{const on=s.target===S.T;return `<div class="st ${s.state==="CLAIMED"&&!on?"done":""} ${on?"cur":""}">${esc(tr("step"))} ${s.level}<b>${num(s.target)}</b></div>`}).join("");
+  $("t-target").textContent=tr("target");$("t-until").textContent=tr("until");$("t-dbt").textContent=tr("with_doubtful");
+  $("targets").innerHTML=D.targets.map(t=>`<button class="chip" data-t="${t}" aria-pressed="${t===S.T}">${num(t)}</button>`).join("");
+  for(const b of $("targets").querySelectorAll("button"))b.onclick=()=>{S.T=+b.dataset.t;store.set("T",S.T);render()};
+  const r=$("day");r.max=D.days.length-1;r.value=S.day;$("dayl").textContent=dayLong(D.days[S.day]);$("dbt").checked=S.dbt;
+  $("lives").innerHTML=`${esc(tr("lives"))} <button id="lv-" aria-label="−">−</button><b>${S.lives}</b><button id="lv+" aria-label="+">+</button>`;
+  $("lv-").onclick=()=>{S.lives=Math.max(0,S.lives-1);render()};$("lv+").onclick=()=>{S.lives=Math.min(4,S.lives+1);render()};
+  const sg=sug();const l=sg&&sg.l[0];
+  $("ring").style.setProperty("--p",l?l.p:0);$("ringv").textContent=l?pct(l.p):"–";$("ringl").textContent=tr("ring");
+  $("facts").innerHTML=l?`<b>${esc(tr("f_exp",{v:num(l.mean)}))}</b><span>${esc(tr("f_rng",{a:num(l.p10),b:num(l.p90)}))}</span><span>${esc(tr("f_lock",{t:when(l.lock)}))} · ${esc(tr("f_last",{t:when(l.last)}))}</span>${S.dbt?`<span class="bad">${esc(tr("dbt_note"))}</span>`:""}`:`<span>${esc(tr("none"))}</span>`;
+  // pitch: rows by position, attack on top
+  if(!l||!nL()){$("pitchhead").innerHTML="";$("form").innerHTML=`<p style="color:#fff">${esc(tr("none"))}</p>`;return}
+  const rows={F:[],M:[],D:[],G:[]};
+  for(const [id,slot,c,cs,ed,b] of l.pl){const p=slot==="EXTRA"?D.items[id].pos:posOf(slot);rows[p].push(card(id,slot,c,cs,ed,b))}
+  const cap=l.pl.find(x=>x[2]);
+  $("pitchhead").innerHTML=`<b class="d" style="font-size:22px;color:#fff">${esc(tr("pitch"))}</b><span>${esc(tr("pitch_ok",{c:cap?D.items[cap[0]].n:"–"}))}</span>`;
+  $("form").innerHTML=["F","M","D","G"].filter(k=>rows[k].length).map(k=>`<div class="line">${rows[k].join("")}</div>`).join("");
+}
+
+function renderDetail(){
+  $("t-detail").textContent=tr("detail");$("detail-lead").textContent=tr("detail_lead");
+  const sg=sug();const l=sg&&sg.l[0];
+  if(!l||!nL()){$("detail").innerHTML=`<li class="empty">${esc(tr("none"))}</li>`;return}
+  $("detail").innerHTML=l.pl.map(([id,slot,c,cs,ed,b])=>{const it=D.items[id];const e=ed||it.ed;const bb=b??it.b;const mult=c?(1+bb+.5)/(1+it.b):(1+bb)/(1+it.b);
+    return `<li><span class="sw2 ${edc(e)}">${esc(initials(it.n))}</span><div class="main"><h3>${esc(it.n)} ${c?`<span class="pill" style="background:var(--lime);color:#0b3d2c">${esc(tr("captain"))}</span>`:""} ${it.dbt?`<span class="pill w">${esc(tr("doubtful_tag"))}</span>`:""}</h3>
+<p class="meta">${esc(tr("slot_"+slot))} · ${esc(e)}${bb?" +"+Math.round(bb*100)+"\u00a0%":""}</p>
+<p class="meta">${esc(it.m)} · ${esc(when(it.d))} · ${esc(tr(it.av==="grade"?"late":"early"))}</p></div>
+<div class="num"><b>${num(it.mean*mult)}</b><span class="mute" style="font-size:13px">${esc(tr("plays"))} ${esc(pct(it.pp??0))}</span></div><a class="lnk" href="${esc(sorareUrl(cs||""))}" target="_blank" rel="noopener">${esc(tr("open"))} ↗</a><p class="why">${(it.why||[]).slice(0,3).map(w=>esc(reason(w))).join(" ")}</p></li>`}).join("");
+}
+
+function renderMore(){
+  $("t-more").textContent=tr("more");$("more-lead").textContent=tr("more_lead");
+  const sg=sug();const n=nL();
+  if(!sg||sg.l.length<2||n<2){$("more").innerHTML=`<p class="empty">${esc(tr("none"))}</p>`;return}
+  $("more").innerHTML=sg.l.slice(1,n).map((x,k)=>`<div class="box"><div class="hd"><div><h3>${esc(tr("lu",{n:k+2}))}</h3><p class="mute" style="font-size:14px">${esc(tr("together",{p:pct(x.pa)}))} · ${esc(tr("f_lock",{t:when(x.lock)}))}</p></div><span class="d">${esc(pct(x.p))}</span></div><div class="strip">${x.pl.map(([id,slot,c,cs,ed,b])=>card(id,slot,c,cs,ed,b).replace('class="cd ','class="cd sm ')).join("")}</div></div>`).join("");
+}
+
+function renderTime(){
+  $("t-time").textContent=tr("time");$("time-lead").textContent=tr("time_lead");const n=nL();
+  $("days").innerHTML=D.days.map((d,i)=>{const sg=sug(i);const b=sg&&sg.l[0]?sg.l[0].p:0;const a=sg&&sg.l.length&&n?sg.l[Math.min(n,sg.l.length)-1].pa:0;
+    return `<button class="daycol" data-i="${i}" aria-pressed="${i===S.day}"><span class="v">${esc(pct(b))}</span><span class="bars"><span class="a" style="height:${(a*100).toFixed(1)}%"></span><span class="b" style="height:${(b*100).toFixed(1)}%"></span></span><span class="l">${esc(dayShort(d))}</span></button>`}).join("");
+  for(const b of $("days").querySelectorAll("button"))b.onclick=()=>{S.day=+b.dataset.i;store.set("day",S.day);render()};
+  $("days-leg").innerHTML=`<span><i style="background:var(--acc)"></i>${esc(tr("best"))}</span><span><i style="background:color-mix(in srgb,var(--acc) 35%,transparent)"></i>${esc(tr("anyn",{n}))}</span>`;
+  $("t-alts").textContent=tr("alts");$("alts-lead").textContent=tr("alts_lead");
+  const sg=sug();if(!sg||!sg.l.length){$("alts").innerHTML="";return}
+  $("alts").innerHTML=sg.alts.map((a,k)=>{const cur=D.items[sg.l[0].pl[k][0]];return `<li><div><b>${esc(tr("slot_"+a.slot))}</b><br><span class="mute">${esc(cur?cur.n:"")}</span></div><div>${a.opts.map(([id,p,dl])=>{const it=D.items[id];const t=Math.abs(dl)<.01?tr("equal"):(dl>0?"+":"−")+new Intl.NumberFormat(S.lang,{maximumFractionDigits:1}).format(Math.abs(dl*100))+" "+tr("pp");return `<div class="o"><span>${esc(it.n)} <span class="pill">${esc(it.ed)}</span>${it.dbt?` <span class="pill w">${esc(tr("doubtful_tag"))}</span>`:""}</span><span>${esc(pct(p))} · <span class="${dl>=.01?"up":""}">${esc(t)}</span></span></div>`}).join("")}</div></li>`}).join("");
+}
+
+function renderMine(){
+  $("t-mine").textContent=tr("mine");$("mine-lead").textContent=tr("mine_lead");
+  if(!D.my.length){$("mine").innerHTML=`<p class="empty">${esc(tr("no_mine"))}</p>`;return}
+  $("mine").innerHTML=D.my.map((l,k)=>`<div class="box"><div class="hd"><div><h3>${esc(tr("lu",{n:k+1}))} · ${esc(tr(l.updatable?"open_l":"locked"))}</h3><p class="${l.impossible?"bad":"mute"}" style="font-size:14px">${esc(l.impossible?tr("impossible"):tr("pts",{a:num(l.points),b:num(l.need)}))}</p></div><span class="d">${esc(pct(l.p))}</span></div>
+<div class="strip">${l.pl.map(c=>`<a class="cd sm ${edc(c.ed)}" href="${esc(sorareUrl(c.card||""))}" target="_blank" rel="noopener">${c.cap?`<span class="cap">${esc(tr("cap"))}</span>`:""}<span class="top"><span class="pos">${esc(tr(c.slot==="EXTRA"?"ps_X":"ps_"+posOf(c.slot)))}</span><span>${c.mult>1.001?"+"+Math.round((c.mult-1-(c.cap?.5:0))*100)+"%":""}</span></span><span class="mono">${esc(initials(c.name))}</span><span class="nm">${esc(c.name)}</span><span class="ed">${esc(c.ed||"Standard")}</span><span class="bt"><span>${esc(c.status==="PENDING"?when(c.date):tr("st_"+c.status))}</span><b>${c.status==="PENDING"?"–":num(c.score)}</b></span></a>`).join("")}</div>
+${l.swaps.map(s=>`<p class="up" style="margin-top:10px">${esc(tr("swap",{out:s.out,in:D.items[s.item].n,p0:pct(l.p),p1:pct(s.p)}))}</p>`).join("")}</div>`).join("");
+}
+
+function renderPlayers(){
+  $("t-players").textContent=tr("players");$("players-lead").textContent=tr("players_lead");
+  $("filters").innerHTML=["all","G","D","M","F"].map(t=>`<button class="fchip" data-p="${t}" aria-pressed="${S.pos===t}">${esc(t==="all"?tr("all"):tr("pos_"+t))}</button>`).join("")+`<input id="q" type="search" placeholder="${esc(tr("search"))}" aria-label="${esc(tr("search"))}" value="${esc(S.q)}">`;
+  for(const b of $("filters").querySelectorAll("button"))b.onclick=()=>{S.pos=b.dataset.p;renderPlayers()};
+  $("q").oninput=e=>{S.q=e.target.value;drawPlayers()};
+  drawPlayers();
+}
+function drawPlayers(){
+  const end=new Date(D.days[S.day]+"T23:59:00+01:00");
+  let ids=(S.pos==="all"?["G","D","M","F"]:[S.pos]).flatMap(p=>D.top[p]||[]).filter(id=>{const it=D.items[id];return it&&new Date(it.d)<=end&&(!S.q||it.n.toLowerCase().includes(S.q.toLowerCase()))});
+  ids.sort((a,b)=>D.items[b].mean-D.items[a].mean);
+  $("pgrid").innerHTML=ids.length?ids.slice(0,48).map(id=>{const it=D.items[id];const w=(it.why||[])[0];return `<div class="pc"><span class="sw2 ${edc(it.ed)}">${esc(initials(it.n))}</span><div><h3>${esc(it.n)}</h3><p class="m">${esc(tr("ps_"+it.pos))} · ${esc(it.ed)} · ${esc(when(it.d))}</p><p class="m">${esc(it.m)}</p><div class="k"><span><b>${num(it.mean)}</b> ${esc(tr("exp"))}</span><span>${esc(tr("plays"))} ${esc(pct(it.pp??0))}</span><span>${esc(tr("c100"))} ${esc(pct(it.p100))}</span></div>${it.dbt?`<span class="pill w">${esc(tr("doubtful_tag"))}</span> `:""}${w?`<p class="m" style="margin-top:4px">${esc(reason(w))}</p>`:""}</div></div>`}).join(""):`<p class="empty">${esc(tr("none"))}</p>`;
+}
+
+function renderHit(){
+  $("t-hit").textContent=tr("hit");const g=D.backtest.grade,f=D.backtest.form;
+  $("hit-lead").textContent=g&&f?tr("hit_lead",{n:g.n,a:pct(g.best[0]),b:pct(g.best[1]),c:pct(g.any[0]),d:pct(g.any[1]),e:pct(f.best[0]),f:pct(f.best[1])}):"";
+  $("hit-live").textContent=tr("hit_live");
+  $("hit").innerHTML=g?D.targets.map(t=>{const v=g.by[String(t)];if(!v)return"";return `<div class="hrow"><span>${esc(tr("step"))} ${num(t)}</span><span class="t"><i style="width:${(v[1]*100).toFixed(1)}%;background:color-mix(in srgb,var(--acc) 35%,transparent)"></i><i style="width:${(v[0]*100).toFixed(1)}%;background:var(--acc);height:50%;top:25%"></i></span><span class="v">${esc(pct(v[0]))} / ${esc(pct(v[1]))}</span></div>`}).join(""):"";
+  $("hit-leg").innerHTML=`<span><i style="background:var(--acc)"></i>${esc(tr("pred"))}</span><span><i style="background:color-mix(in srgb,var(--acc) 35%,transparent)"></i>${esc(tr("real"))}</span>`;
+  $("foot").textContent=tr("foot");
+}
+
+function render(){renderNav();renderHero();renderDetail();renderMore();renderTime();renderMine();renderPlayers();renderHit()}
+
+function start(data){
+  D=data;
+  S.T=store.get("T",D.focus.target);if(!D.targets.includes(S.T))S.T=D.focus.target;
+  S.day=Math.min(store.get("day",0),D.days.length-1);
+  S.lives=D.focus.key==="focus_after_reset"?4:(D.board.current?D.board.current.remaining:4);
+  $("lang").onclick=()=>{S.lang=S.lang==="de"?"en":"de";store.set("lang",S.lang);render()};
+  $("day").oninput=e=>{S.day=+e.target.value;store.set("day",S.day);render()};
+  $("dbt").onchange=e=>{S.dbt=e.target.checked;store.set("dbt",S.dbt);render()};
+  $("bell").onclick=()=>{const p=$("notes");p.hidden=!p.hidden;$("bell").setAttribute("aria-expanded",String(!p.hidden))};
+  render();
+}
+fetch("page_data.json").then(r=>r.json()).then(start).catch(()=>{document.querySelector("main").innerHTML=`<section class="band"><div class="wrap"><p class="bad">Daten konnten nicht geladen werden / data could not be loaded.</p></div></section>`});
+}
+</script>
+</body>
+</html>

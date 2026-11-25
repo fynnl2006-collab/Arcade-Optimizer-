@@ -1,0 +1,76 @@
+# Rechnet die Set-Aufstellungen regelmäßig neu und veröffentlicht die Seite über GitHub Pages.
+# Läuft komplett bei GitHub (für öffentliche Repos kostenlos) – ohne Claude.
+name: Set-Optimierer aktualisieren
+
+on:
+  schedule:
+    - cron: "7,37 9-23 * * *"   # tagsüber alle 30 Minuten (Zeiten in UTC, Deutschland = UTC+1)
+    - cron: "7 0-8 * * *"       # nachts stündlich
+  workflow_dispatch:             # von Hand starten: Actions -> "Set-Optimierer aktualisieren" -> Run workflow
+
+permissions:
+  contents: write   # Daten (Spiele, Schnappschüsse, Protokoll) zurück ins Repo schreiben
+  pages: write
+  id-token: write
+
+concurrency:
+  group: set-optimierer
+  cancel-in-progress: false   # Läufe nacheinander, nie gleichzeitig
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SORARE_API_KEY: ${{ secrets.SORARE_API_KEY }}   # optional, macht die Abfragen ca. 10x schneller
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Gespielte Spiele nachladen
+        run: python update_games.py
+        continue-on-error: true
+
+      - name: Aufstellungen neu rechnen
+        run: |
+          python live.py
+          python export_page.py
+
+      - name: Daten sichern
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "Keine neuen Daten"
+          else
+            git commit -q -m "Daten $(date -u +%Y-%m-%dT%H:%MZ)"
+            git pull --rebase -q
+            git push -q
+          fi
+
+      - name: Seite zusammenstellen
+        run: |
+          mkdir -p _site
+          cp site/index.html _site/
+          cp data/output/page_data.json _site/
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: update
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
