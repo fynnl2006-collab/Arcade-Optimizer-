@@ -25,10 +25,10 @@ import fetch_games
 import model as M
 import perfect_run
 import sorare
+import users as U
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-USER = "schattus"
-OUT_DIR = os.path.join(BASE, "data", "output")
+USER = U.DEFAULT  # Standard-Manager; welche gerechnet werden, steht in users.txt
 SNAP_DIR = os.path.join(BASE, "data", "snapshots")
 WINDOW_DAYS = 5
 LINEUP_KNOWN_MIN = 19   # ab so vielen Spielern mit Note A-E gilt die Startelf als bekannt
@@ -36,7 +36,7 @@ SLOT_NAMES = ["GK", "DEF", "MID", "FWD", "EXTRA"]
 MAX_LINEUPS = 4        # so viele Aufstellungen wie Leben je Stufe; die Seite zeigt so viele wie freie Leben
 NEXT_STEP_GAP = dt.timedelta(hours=2, minutes=5)  # Anstoß letztes Spiel -> nächste Stufe/Neustart stellbar (laut Fynn)
 
-Q_BOARD = '''query($u:String!){ user(slug:$u){ setBoard(mode: CAREER, sport: FOOTBALL) { ... on CareerBoard {
+Q_BOARD = '''query($u:String!){ user(slug:$u){ nickname setBoard(mode: CAREER, sport: FOOTBALL) { ... on CareerBoard {
   configSlug steps { level target state ... on CareerStep { id maxLineupsCount lockedLineupsCount
   pendingLineupsCount remainingLineupsCount } } } } } }'''
 Q_LINEUPS = '''query($u:String!,$id:String!){ user(slug:$u){ step(id:$id){ ... on CareerStep { myTask {
@@ -53,10 +53,10 @@ def now_utc():
 
 
 # ---------------------------------------------------------------- Abruf
-def fetch_cards(set_slug, max_age_h=24):
+def fetch_cards(set_slug, udir, user, max_age_h=24):
     """Alle Karten des aktiven Sets (einmal pro Tag neu)."""
     # Abrufzeit steht in der Datei selbst (nicht Datei-Zeitstempel: GitHub setzt den beim Auschecken neu)
-    path = os.path.join(BASE, "data", "cards_all.json")
+    path = os.path.join(udir, "cards_all.json")
     cards, fetched = None, 0.0
     if os.path.exists(path):
         with open(path) as f:
@@ -72,7 +72,7 @@ def fetch_cards(set_slug, max_age_h=24):
     if not fresh:
         cards, after = [], None
         while True:
-            d = sorare.query(Q_CARDS, {"u": USER, "after": after}, cache=False)
+            d = sorare.query(Q_CARDS, {"u": user, "after": after}, cache=False)
             c = d["user"]["cards"]
             cards += c["nodes"]
             if not c["pageInfo"]["hasNextPage"]:
@@ -416,48 +416,73 @@ def suggest(raw_opt, raw_eval, st_opt, st_eval, bonus, items, T, sugg_free, n_op
 
 
 # ---------------------------------------------------------------- Hauptlauf
-def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
-    inputs_path = os.path.join(BASE, "data", "live_inputs.json")
+def write_result(out_dir, result):
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, "result.json"), "w") as f:
+        json.dump(result, f)
+    return result
+
+
+def run(n_opt=15000, n_eval=30000, targets=None, offline=False, user=USER, shared=None):
+    """Ein Lauf für einen Manager. `shared` hält, was für alle Manager gleich ist (Spiele, Schnappschuss,
+    Modelle, Verletzungsstatus), damit es bei mehreren Managern nur einmal geholt bzw. gerechnet wird."""
+    shared = {} if shared is None else shared
+    udir = U.user_dir(user)
+    out_dir = os.path.join(udir, "output")
+    inputs_path = os.path.join(udir, "live_inputs.json")
     if offline:  # mit den zuletzt geholten Daten neu rechnen (ohne API)
         with open(inputs_path) as f:
             inp = json.load(f)
         ts = dt.datetime.fromisoformat(inp["time"])
         set_info, board, lineups, games = inp["set"], inp["board"], inp["lineups"], inp["games"]
-        cards = fetch_cards(set_info["slug"], max_age_h=10 ** 6)
+        nickname = inp.get("nickname") or user
+        cards = fetch_cards(set_info["slug"], udir, user, max_age_h=10 ** 6)
         steps = board["steps"]
         cur = next((s for s in steps if s["state"] != "CLAIMED"), None)
         snap_path = os.path.join(SNAP_DIR, ts.strftime("%Y%m%dT%H%M") + ".json.gz")
     else:
-        ts = now_utc()
-        cs = sorare.query(Q_SET, cache=False)["cardSet"]
-        set_info = cs["currentSet"]
-        cards = fetch_cards(set_info["slug"])
-        board = sorare.query(Q_BOARD, {"u": USER}, cache=False)["user"]["setBoard"]
+        if "ts" not in shared:  # einmal je Lauf: Zeit, aktives Set, kommende Spiele, Prognose-Schnappschuss
+            shared["ts"] = now_utc()
+            shared["set"] = sorare.query(Q_SET, cache=False)["cardSet"]["currentSet"]
+            shared["games"] = fetch_upcoming()
+            shared["snap_path"] = save_snapshot(shared["games"], shared["ts"])
+        ts, set_info, games, snap_path = shared["ts"], shared["set"], shared["games"], shared["snap_path"]
+        try:
+            ud = sorare.query(Q_BOARD, {"u": user}, cache=False)["user"]
+        except sorare.SorareError:
+            ud = None
+        if not ud or not ud.get("setBoard"):
+            return write_result(out_dir, {"time": ts.isoformat(), "note": "unknown_user",
+                                          "user": {"slug": user, "nickname": user}})
+        nickname = ud.get("nickname") or user
+        cards = fetch_cards(set_info["slug"], udir, user)
+        board = ud["setBoard"]
         steps = board["steps"]
         cur = next((s for s in steps if s["state"] != "CLAIMED"), None)
         lineups = []
         if cur:
-            lineups = sorare.query(Q_LINEUPS, {"u": USER, "id": cur["id"]}, cache=False)["user"]["step"]["myTask"]["taskLineups"]
-        games = fetch_upcoming()
-        snap_path = save_snapshot(games, ts)
+            lineups = sorare.query(Q_LINEUPS, {"u": user, "id": cur["id"]}, cache=False)["user"]["step"]["myTask"]["taskLineups"]
         with open(inputs_path, "w") as f:
-            json.dump({"time": ts.isoformat(), "set": set_info, "board": board, "lineups": lineups, "games": games}, f)
+            json.dump({"time": ts.isoformat(), "set": set_info, "board": board, "lineups": lineups, "games": games,
+                       "nickname": nickname}, f)
     prev = previous_snapshot(snap_path)
+    user_info = {"slug": user, "nickname": nickname}
 
-    # Modelle auf allen bisherigen Spielen
-    rows = M.load_rows()
-    models = {a: M.SetModel("pooled", 0.3, a).fit(rows) for a in ("grade", "form")}
-    # Kalibrierung aus calibrate.py (25.11.2026): Modus "spät" leicht anheben und enger machen,
-    # Modus "früh" war auf der zweiten Testhälfte ohne Korrektur am besten.
-    models["grade"].calib = {"mean": 1.03, "spread": 0.9}
-    hist = defaultdict(list)
-    for r in rows:
-        hist[r["player"]].append(r)
-    played = load_played_games()
-    defense = team_defense(played)
-    form = team_form(played)
+    # Modelle auf allen bisherigen Spielen (für alle Manager gleich -> nur einmal je Lauf)
+    if "models" not in shared:
+        rows = M.load_rows()
+        models = {a: M.SetModel("pooled", 0.3, a).fit(rows) for a in ("grade", "form")}
+        # Kalibrierung aus calibrate.py (25.11.2026): Modus "spät" leicht anheben und enger machen,
+        # Modus "früh" war auf der zweiten Testhälfte ohne Korrektur am besten.
+        models["grade"].calib = {"mean": 1.03, "spread": 0.9}
+        hist = defaultdict(list)
+        for r in rows:
+            hist[r["player"]].append(r)
+        played = load_played_games()
+        shared.update(models=models, hist=hist, defense=team_defense(played), form=team_form(played))
+    models, hist, defense, form = shared["models"], shared["hist"], shared["defense"], shared["form"]
 
-    # Kandidaten: (Spieler, Spiel) aus Fynns Karten
+    # Kandidaten: (Spieler, Spiel) aus den Karten des Managers
     items = []
     for g in games:
         if g["statusTyped"] != "scheduled":
@@ -487,12 +512,17 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
                   "cards": [{"slug": c["card"], "ed": c["edition"], "b": c["bonus"]} for c in cards[slug]]}
             items.append(it)
     # Verletzungen und Spielstatus (Sorare-API) – online neu holen, offline aus dem Zwischenspeicher
-    status_path = os.path.join(BASE, "data", "status.json")
+    status_path = os.path.join(udir, "status.json")
     if offline and os.path.exists(status_path):
         with open(status_path) as f:
             status = json.load(f)
     elif not offline:
-        status = fetch_status({it["player"] for it in items})
+        known = shared.setdefault("status", {})
+        mine = {it["player"] for it in items}
+        need = mine - set(known)
+        if need:
+            known.update(fetch_status(need))
+        status = {p: known[p] for p in mine if p in known}
         with open(status_path, "w") as f:
             json.dump(status, f)
     else:
@@ -517,11 +547,7 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
             it["pp_factor"] = 0.5     # Sorare stuft ihn als "spielt nicht" ein (grobe Annahme, noch nicht kalibriert)
 
     if not items:
-        result = {"time": ts.isoformat(), "note": "keine kommenden Spiele"}
-        os.makedirs(OUT_DIR, exist_ok=True)
-        with open(os.path.join(OUT_DIR, "result.json"), "w") as f:
-            json.dump(result, f)
-        return result
+        return write_result(out_dir, {"time": ts.isoformat(), "note": "no_items", "user": user_info})
 
     bonus = np.array([it["bonus"] for it in items], dtype=np.float32)
     raw_opt = simulate_hybrid(models, items, n_opt, seed=11)
@@ -734,7 +760,7 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
         elif old and old.get("proj") and it["proj"] < 0.75 * old["proj"]:
             notes.append({"key": "note_proj_drop", "player": it["name"], "match": it["match"], "date": it["date"],
                           "old": round(old["proj"], 1), "new": round(it["proj"], 1), "lineup": watch[key]})
-    notes_path = os.path.join(BASE, "data", "notifications.json")
+    notes_path = os.path.join(udir, "notifications.json")
     old_notes = json.load(open(notes_path)) if os.path.exists(notes_path) else []
     seen = {(n["key"], n["player"], n.get("date")) for n in old_notes}
     for n in notes:
@@ -745,7 +771,7 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
         json.dump(old_notes[-100:], f)
 
     result = {
-        "time": ts.isoformat(), "set": set_info,
+        "time": ts.isoformat(), "set": set_info, "user": user_info,
         "board": {"steps": [{"level": s["level"] + 1, "target": s["target"], "state": s["state"]} for s in steps],
                   "current": ({"level": cur["level"] + 1, "target": cur["target"], "remaining": remaining,
                                "pending": cur["pendingLineupsCount"], "locked": cur["lockedLineupsCount"]} if cur else None)},
@@ -755,12 +781,10 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
         "my_lineups": my_lineups, "notifications": old_notes[-50:],
         "days": [str(d) for d in days], "matchups": matchups, "perfect": perfect,
     }
-    os.makedirs(OUT_DIR, exist_ok=True)
-    with open(os.path.join(OUT_DIR, "result.json"), "w") as f:
-        json.dump(result, f)
+    write_result(out_dir, result)
     # Vorhersagen protokollieren, damit später die Trefferquote berechnet werden kann
     if not offline:
-        with open(os.path.join(BASE, "data", "predictions_log.jsonl"), "a") as f:
+        with open(os.path.join(udir, "predictions_log.jsonl"), "a") as f:
             full = f"{days[0]}_{days[-1]}" if days else None  # Protokoll nur für das Fenster über alle Tage
             for T, by_win in suggestions.items():
                 if full not in by_win:
@@ -774,5 +798,14 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
 
 
 if __name__ == "__main__":
-    r = run(offline="--offline" in sys.argv)
-    print(json.dumps({k: r[k] for k in ("time", "board", "focus")}, indent=1, default=str))
+    # alle Manager aus users.txt (oder nur die als Argument genannten); einer mit Fehler hält die anderen nicht auf
+    names = [a for a in sys.argv[1:] if not a.startswith("--")] or U.load_users()
+    shared, ok = {}, 0
+    for name in names:
+        try:
+            r = run(offline="--offline" in sys.argv, user=name, shared=shared)
+            ok += 1
+            print(name, json.dumps({k: r.get(k) for k in ("time", "note", "focus")}, default=str)[:300], flush=True)
+        except Exception as e:
+            print("Fehler bei", name, repr(e)[:500], flush=True)
+    sys.exit(0 if ok else 1)

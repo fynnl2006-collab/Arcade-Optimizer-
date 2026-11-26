@@ -1,4 +1,5 @@
-"""Erzeugt aus data/output/result.json die kompakten Daten für die Seite (data/output/page_data.json).
+"""Erzeugt je Manager aus data/users/<slug>/output/result.json die kompakten Daten für die Seite
+(data/users/<slug>/output/page_data.json) und die Liste der Manager mit Daten (data/output/users.json).
 Nur Spieler, die in Vorschlägen, Alternativen, eigenen Aufstellungen oder der Spielerliste vorkommen."""
 import json
 import os
@@ -7,9 +8,22 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 POS = {"Goalkeeper": "G", "Defender": "D", "Midfielder": "M", "Forward": "F"}
 
 
-def main():
-    with open(os.path.join(BASE, "data", "output", "result.json")) as f:
+def main(user):
+    out_dir = os.path.join(BASE, "data", "users", user, "output")
+    rp = os.path.join(out_dir, "result.json")
+    if not os.path.exists(rp):
+        return None
+    with open(rp) as f:
         r = json.load(f)
+    uinfo = r.get("user") or {"slug": user, "nickname": user}
+    if "suggestions" not in r:  # Manager unbekannt oder keine Karten/Spiele -> nur ein Hinweis für die Seite
+        with open(os.path.join(BASE, "i18n.json")) as f:
+            i18n = json.load(f)
+        page = {"time": r["time"], "empty": True, "note": r.get("note"), "user": uinfo, "i18n": i18n}
+        with open(os.path.join(out_dir, "page_data.json"), "w") as f:
+            json.dump(page, f, ensure_ascii=False, separators=(",", ":"))
+        print(user, "ohne Vorschläge:", r.get("note"))
+        return {"slug": user, "name": uinfo.get("nickname") or user, "empty": True}
     with open(os.path.join(BASE, "i18n.json")) as f:
         i18n = json.load(f)
     items = r["items"]
@@ -119,15 +133,28 @@ def main():
                         "any": [b["mind. eine von 3"]["mittl_vorhergesagt"], b["mind. eine von 3"]["geschafft_anteil"]],
                         "n": b["1"]["n"],
                         "by": {t: [v["vorhergesagt"], v["geschafft"]] for t, v in b["1"]["je_ziel"].items()}}
-    page = {"time": r["time"], "backtest": bt, "set": r["set"], "board": r["board"], "focus": r["focus"],
+    page = {"time": r["time"], "user": uinfo, "backtest": bt, "set": r["set"], "board": r["board"], "focus": r["focus"],
             "targets": sorted(int(t) for t in r["suggestions"]), "days": r.get("days") or sorted(next(iter(r["suggestions"].values())).keys()),
             "matchups": matchups,
             "items": packed, "sugg": sugg, "cards": card_tab, "perfect": perfect, "my": my, "notes": r["notifications"], "top": top, "i18n": i18n}
-    path = os.path.join(BASE, "data", "output", "page_data.json")
+    path = os.path.join(out_dir, "page_data.json")
     with open(path, "w") as f:
         json.dump(page, f, ensure_ascii=False, separators=(",", ":"))
-    print(path, os.path.getsize(path), "Bytes,", len(packed), "Spieler-Spiele")
+    print(user, path, os.path.getsize(path), "Bytes,", len(packed), "Spieler-Spiele")
+    return {"slug": user, "name": uinfo.get("nickname") or user}
 
 
 if __name__ == "__main__":
-    main()
+    import users as U
+    done = []
+    for name in U.load_users():
+        try:
+            x = main(name)
+            if x:
+                done.append(x)
+        except Exception as e:  # ein kaputter Manager soll die Seite der anderen nicht verhindern
+            print("Fehler bei", name, repr(e)[:300])
+    os.makedirs(os.path.join(BASE, "data", "output"), exist_ok=True)
+    with open(os.path.join(BASE, "data", "output", "users.json"), "w") as f:
+        json.dump(done, f, ensure_ascii=False)
+    print("Manager mit Daten:", [d["slug"] for d in done])

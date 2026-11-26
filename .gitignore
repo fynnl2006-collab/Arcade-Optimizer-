@@ -5,3 +5,6 @@ data/output/
 data/live_inputs.json
 data/status.json
 data/*.log
+data/users/*/output/
+data/users/*/live_inputs.json
+data/users/*/status.json

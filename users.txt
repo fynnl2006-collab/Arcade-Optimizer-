@@ -1,0 +1,3 @@
+# Sorare-Manager, für die gerechnet wird – einer pro Zeile (wie im Sorare-Profil-Link, Groß/klein egal).
+# Neue Zeile hinzufügen = ab dem nächsten Lauf (ca. stündlich) mitgerechnet. Zeile löschen = nicht mehr gerechnet.
+schattus
