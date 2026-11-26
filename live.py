@@ -23,6 +23,7 @@ from scipy.stats import norm
 
 import fetch_games
 import model as M
+import perfect_run
 import sorare
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -370,7 +371,7 @@ def explain(it, defense):
     return reasons[:3]
 
 
-def suggest(raw_opt, raw_eval, st_opt, st_eval, bonus, items, T, sugg_free, n_opt, n_eval):
+def suggest(raw_opt, raw_eval, st_opt, st_eval, bonus, items, T, sugg_free, n_opt, n_eval, with_alts=True):
     """Die bis zu MAX_LINEUPS besten Aufstellungen für ein Ziel mit den erlaubten Karten (sugg_free) + Alternativen."""
     free = dict(sugg_free)
     lus = []
@@ -402,7 +403,7 @@ def suggest(raw_opt, raw_eval, st_opt, st_eval, bonus, items, T, sugg_free, n_op
                     "_lu": lu})
         for i in lu["idx"]:
             free[(items[i]["player"], items[i]["game"])] -= 1
-    alts = alternatives(raw_eval, bonus, items, lus[0]["_lu"], T, sugg_free, st_eval) if lus else []
+    alts = alternatives(raw_eval, bonus, items, lus[0]["_lu"], T, sugg_free, st_eval) if (lus and with_alts) else []
     for l in lus:
         l.pop("_lu")
     return {"lineups": lus, "p_any": round(float(any_ok.mean()), 4), "alternatives": alts}
@@ -582,6 +583,26 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
     st_opt, st_eval = col_stats(raw_opt), col_stats(raw_eval)
     st_opt_d, st_eval_d = col_stats(raw_opt_d), col_stats(raw_eval_d)
 
+    # Perfect Run: Plan über mehrere Stufen (perfect_run.py). Start = aktuelle Stufe mit freien Leben,
+    # ohne freie Leben = Neustart auf Stufe 1 (wie der Fokus oben).
+    order = sorted(steps, key=lambda st: st["level"])
+    start_stage, start_lives = (cur["level"] + 1, remaining) if (cur and remaining > 0) else (1, MAX_LINEUPS)
+    pr_ctx = {"items": items, "it_dt": it_dt, "card_free": card_free, "raw_opt": raw_opt, "raw_eval": raw_eval,
+              "st_opt": st_opt, "st_eval": st_eval, "bonus": bonus, "n_opt": n_opt, "n_eval": n_eval,
+              "suggest": suggest, "gap": NEXT_STEP_GAP, "berlin": berlin, "targets": [st["target"] for st in order],
+              "start_time": earliest, "start_stage": start_stage, "start_lives": start_lives, "days": days}
+    if os.environ.get("SETOPT_PR_DUMP"):  # nur zum Testen: Eingaben des Planers speichern und aufhören
+        import pickle
+        with open(os.environ["SETOPT_PR_DUMP"], "wb") as f:
+            pickle.dump({k: v for k, v in pr_ctx.items() if k != "suggest"}, f, protocol=4)
+        return None
+    try:
+        perfect = perfect_run.plan(pr_ctx)
+        print("Perfect Run:", perfect and perfect["stats"], flush=True)
+    except Exception as e:  # der Planer darf den restlichen Lauf nie verhindern
+        print("Perfect Run Fehler:", repr(e)[:300], flush=True)
+        perfect = None
+
     # Schalter "fragliche Spieler": "ohne" (Standard) schließt sie aus, "mit" lässt sie zu
     suggestions = {}
     variants = {}
@@ -722,7 +743,7 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
         "items": [{k: v for k, v in it.items() if k not in ("team", "opponent")} for it in items],
         "suggestions": suggestions, "suggestions_with_doubtful": variants,
         "my_lineups": my_lineups, "notifications": old_notes[-50:],
-        "days": [str(d) for d in days], "matchups": matchups,
+        "days": [str(d) for d in days], "matchups": matchups, "perfect": perfect,
     }
     os.makedirs(OUT_DIR, exist_ok=True)
     with open(os.path.join(OUT_DIR, "result.json"), "w") as f:

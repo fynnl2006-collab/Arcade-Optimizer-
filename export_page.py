@@ -78,6 +78,19 @@ def main():
         top[short] = cand[:25]
         used.update(top[short])
 
+    # Perfect Run: Aufstellungen kompakt (Karten-Nummern statt Karten-Daten), benutzte Spieler merken
+    perfect = r.get("perfect")
+    if perfect:
+        lu = {}
+        for key, v in perfect["lu"].items():
+            ls = []
+            for l in v["l"]:
+                used.update(pl["item"] for pl in l["players"])
+                ls.append({"p": l["p"], "pl": [[pl["item"], pl["slot"], 1 if pl["captain"] else 0, cid(pl["card"])]
+                                               for pl in l["players"]]})
+            lu[key] = {"pa": v["pa"], "l": ls}
+        perfect = dict(perfect, lu=lu)
+
     # Top-Matchups: kommen schon kompakt aus live.py; nur die Karten je Team für die Seite mitnehmen
     matchups = r.get("matchups", [])
     for m in matchups:
@@ -107,7 +120,7 @@ def main():
     page = {"time": r["time"], "backtest": bt, "set": r["set"], "board": r["board"], "focus": r["focus"],
             "targets": sorted(int(t) for t in r["suggestions"]), "days": r.get("days") or sorted(next(iter(r["suggestions"].values())).keys()),
             "matchups": matchups,
-            "items": packed, "sugg": sugg, "cards": card_tab, "my": my, "notes": r["notifications"], "top": top, "i18n": i18n}
+            "items": packed, "sugg": sugg, "cards": card_tab, "perfect": perfect, "my": my, "notes": r["notifications"], "top": top, "i18n": i18n}
     path = os.path.join(BASE, "data", "output", "page_data.json")
     with open(path, "w") as f:
         json.dump(page, f, ensure_ascii=False, separators=(",", ":"))
