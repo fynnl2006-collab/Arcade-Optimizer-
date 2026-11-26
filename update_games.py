@@ -1,6 +1,7 @@
 """Lädt die gespielten Spiele der letzten Tage nach data/games (Grundlage des Prognosemodells).
 Für den Automatik-Lauf vor live.py. Holt nur Spiele, die noch fehlen oder deren Punkte noch nicht endgültig sind."""
 import datetime as dt
+import glob
 import json
 import os
 import sys
@@ -21,6 +22,34 @@ def done(path):
         g = json.load(f)
     return bool(g) and g.get("statusTyped") == "played" and all(
         p.get("scoreStatus") not in ("REVIEWING", "PENDING") for p in g.get("playerGameScores", []))
+
+
+Q_ODDS = '''query($id:ID!){ anyGame(id:$id){ competition { slug name }
+  homeStats { ... on FootballTeamGameStats { ODDS } } awayStats { ... on FootballTeamGameStats { ODDS } } } }'''.replace(
+    "ODDS", fetch_games.ODDS_FIELDS)
+
+
+def backfill_odds(limit):
+    """Quoten für schon gespeicherte Spiele nachladen (Grundlage für den Test, ob Quoten die Prognosen verbessern).
+    Pro Lauf höchstens `limit` Spiele, damit ein Lauf kurz bleibt."""
+    todo = []
+    for path in sorted(glob.glob(os.path.join(fetch_games.GAMES_DIR, "*.json"))):
+        with open(path) as f:
+            g = json.load(f)
+        if g and "homeStats" not in g:
+            todo.append((path, g))
+    n = 0
+    for path, g in todo[:limit]:
+        try:
+            d = sorare.query(Q_ODDS, {"id": g["id"]}, cache=False)["anyGame"]
+        except Exception as e:
+            print("Fehler Quoten", g.get("id"), str(e)[:200], flush=True)
+            continue
+        g.update(d)
+        with open(path, "w") as f:
+            json.dump(g, f)
+        n += 1
+    print(f"Quoten nachgeladen: {n}, noch offen: {len(todo) - n}", flush=True)
 
 
 def main(days=3):
@@ -48,6 +77,7 @@ def main(days=3):
             json.dump(g, f)
         new += 1
     print(f"{len(set(ids))} Spiele geprüft, {new} neu oder aktualisiert", flush=True)
+    backfill_odds(250 if sorare.APIKEY else 0)  # mit API-Key schnell; ohne Key nicht (dauert zu lange)
 
 
 if __name__ == "__main__":

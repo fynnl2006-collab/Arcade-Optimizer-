@@ -15,6 +15,15 @@ def main():
     items = r["items"]
     used = set()
 
+    # Karten-Tabelle: jede Karte (Slug, Edition, Bonus) nur einmal, Vorschläge verweisen per Nummer darauf
+    card_tab, card_ids = [], {}
+
+    def cid(c):
+        if c["slug"] not in card_ids:
+            card_ids[c["slug"]] = len(card_tab)
+            card_tab.append([c["slug"], c["ed"], c["b"]])
+        return card_ids[c["slug"]]
+
     def pack_sugg(by_target):
         out = {}
         for T, by_day in by_target.items():
@@ -24,7 +33,7 @@ def main():
                 for l in sg["lineups"]:
                     for p in l["players"]:
                         used.add(p["item"])
-                    lus.append({"pl": [[p["item"], p["slot"], 1 if p["captain"] else 0, p["card"]["slug"], p["card"]["ed"], p["card"]["b"]]
+                    lus.append({"pl": [[p["item"], p["slot"], 1 if p["captain"] else 0, cid(p["card"])]
                                        for p in l["players"]],
                                 "p": l["p"], "pa": l["p_any_so_far"], "mean": l["mean"],
                                 "p10": l["p10"], "p90": l["p90"], "lock": l["lock"], "last": l["last"]})
@@ -37,6 +46,11 @@ def main():
         return out
 
     sugg = {"0": pack_sugg(r["suggestions"]), "1": pack_sugg(r["suggestions_with_doubtful"])}
+    # Variante "fragliche einplanen" = null, wenn sie gleich der Standardvariante ist (kein fraglicher Spieler im Fenster)
+    for T, by_win in sugg["1"].items():
+        for w, v in by_win.items():
+            if v == sugg["0"].get(T, {}).get(w):
+                by_win[w] = None
 
     my = []
     for l in r["my_lineups"]:
@@ -64,6 +78,12 @@ def main():
         top[short] = cand[:25]
         used.update(top[short])
 
+    # Top-Matchups: kommen schon kompakt aus live.py; nur die Karten je Team für die Seite mitnehmen
+    matchups = r.get("matchups", [])
+    for m in matchups:
+        for side in ("home", "away"):
+            used.update(m[side].get("cards") or [])
+
     packed = {}
     for j in sorted(used):
         it = items[j]
@@ -85,8 +105,9 @@ def main():
                         "n": b["1"]["n"],
                         "by": {t: [v["vorhergesagt"], v["geschafft"]] for t, v in b["1"]["je_ziel"].items()}}
     page = {"time": r["time"], "backtest": bt, "set": r["set"], "board": r["board"], "focus": r["focus"],
-            "targets": sorted(int(t) for t in r["suggestions"]), "days": sorted(next(iter(r["suggestions"].values())).keys()),
-            "items": packed, "sugg": sugg, "my": my, "notes": r["notifications"], "top": top, "i18n": i18n}
+            "targets": sorted(int(t) for t in r["suggestions"]), "days": r.get("days") or sorted(next(iter(r["suggestions"].values())).keys()),
+            "matchups": matchups,
+            "items": packed, "sugg": sugg, "cards": card_tab, "my": my, "notes": r["notifications"], "top": top, "i18n": i18n}
     path = os.path.join(BASE, "data", "output", "page_data.json")
     with open(path, "w") as f:
         json.dump(page, f, ensure_ascii=False, separators=(",", ":"))

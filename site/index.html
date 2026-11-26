@@ -163,6 +163,41 @@ input[type=range]{width:100%;height:44px;accent-color:var(--lime);margin:0}
 .hrow .v{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--mute)}
 footer{background:var(--g1);color:#b9d6c6;font-size:14px;padding:32px 0}
 .empty{color:var(--mute)}
+.range2{position:relative;height:44px}
+.range2 input{position:absolute;inset:0;width:100%;height:44px;margin:0;background:none;pointer-events:none;-webkit-appearance:none;appearance:none}
+.range2 input::-webkit-slider-runnable-track{background:none;border:0}
+.range2 input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:44px;height:44px;border:0;border-radius:50%;background:radial-gradient(circle,var(--lime) 0 11px,var(--g1) 11px 14px,transparent 14.5px);cursor:pointer}
+.range2 input::-moz-range-thumb{pointer-events:auto;width:28px;height:28px;border-radius:50%;background:var(--lime);border:3px solid var(--g1);cursor:pointer}
+.range2 input::-moz-range-track{background:none}
+.range2 input:focus-visible{outline:none}
+.range2 input:focus-visible::-webkit-slider-thumb{background:radial-gradient(circle,var(--lime) 0 11px,var(--g1) 11px 14px,#fff 14px 17px,transparent 17.5px)}
+.rtrack{position:absolute;left:22px;right:22px;top:19px;height:6px;border-radius:3px;background:#ffffff2e}
+.rfill{position:absolute;top:0;bottom:0;background:var(--lime);border-radius:3px}
+.ticks{display:flex;justify-content:space-between;margin:0 6px 4px;font-size:12px;color:#b9d6c6}
+.ticks span{width:32px;text-align:center}
+.daycol[disabled]{opacity:.35;cursor:default}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:14px}
+.mc{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:10px}
+.mh{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.mh .rk{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--g1);color:var(--chalk);font:700 16px "Barlow Condensed",sans-serif}
+.mh h3{font-size:22px}
+.mh .m{font-size:13px;color:var(--mute)}
+.mh .big{font:800 34px "Barlow Condensed",sans-serif;white-space:nowrap}
+.wdl{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--track)}
+.wdl i{display:block;height:100%}
+.wdl .w{background:var(--acc)}.wdl .d{background:color-mix(in srgb,var(--mute) 45%,transparent)}.wdl .l{background:color-mix(in srgb,var(--warn) 70%,transparent)}
+.wdlt{font-size:13px;color:var(--mute);margin-top:4px}
+.ms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
+.ms div{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+.ms dt{font-size:12px;color:var(--mute)}
+.ms dd{margin:0;font:700 20px "Barlow Condensed",sans-serif}
+.fm{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:5px;font:700 12px Inter,sans-serif;color:#fff;margin-right:3px}
+.fm.W{background:#2c8a28}.fm.D{background:#8a9a91}.fm.L{background:#d8503e}
+.mrow{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:14px;flex-wrap:wrap}
+.mcards{display:flex;gap:6px;flex-wrap:wrap}
+.chip2{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:var(--paper)}
+.chip2 i{width:12px;height:16px;border-radius:3px;box-shadow:inset 0 0 0 1px #0002}
+.chip2 b{font-family:"Barlow Condensed",sans-serif;font-size:16px}
 @media(max-width:1000px){.hero .wrap{grid-template-columns:minmax(0,1fr)}.cards5{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}.strip{grid-template-columns:repeat(3,minmax(0,1fr))}nav .wrap{flex-wrap:wrap;gap:8px 12px}.links{order:3;flex-basis:100%;margin:0 -8px;padding-bottom:6px}.brand{flex:1}.det li{grid-template-columns:42px minmax(0,1fr) auto;gap:6px 10px;padding:12px}.det .sw2{width:42px;height:58px;font-size:17px;grid-row:auto}.det li{grid-template-areas:"sw main num" "why why why" "lnk lnk lnk"}.det .lnk{text-align:left;min-height:32px;display:flex;align-items:center}}
 @media(max-width:600px){.score{grid-template-columns:112px minmax(0,1fr)}.ring{width:112px}.ring .d{font-size:30px}.ring small{display:none}.cd{width:clamp(104px,30vw,126px)}.cd .nm{font-size:15px}.cd .bt b{font-size:20px}.line{gap:8px}.days{height:200px;gap:4px}.daycol .v{font-size:15px}.daycol .l{font-size:11px}.alt li{grid-template-columns:minmax(0,1fr)}.st{font-size:10px;padding:5px 2px}.st b{font-size:18px}.chip{font-size:17px}}
@@ -189,7 +224,7 @@ footer{background:var(--g1);color:#b9d6c6;font-size:14px;padding:32px 0}
       <div class="score"><div class="ring" id="ring"><div><span class="d" id="ringv"></span><small id="ringl"></small></div></div><div class="facts" id="facts"></div></div>
       <div class="panel">
         <div><span class="lbl" id="t-target"></span><div class="chips" id="targets"></div></div>
-        <div><label class="lbl" for="day" id="t-until"></label><input type="range" id="day" min="0" max="0" step="1" value="0"><div class="row2"><b id="dayl"></b><span class="lives" id="lives"></span></div></div>
+        <div><span class="lbl" id="t-until"></span><div class="range2"><div class="rtrack"><div class="rfill" id="rfill"></div></div><input type="range" id="dfrom" min="0" max="0" step="1" value="0"><input type="range" id="dto" min="0" max="0" step="1" value="0"></div><div class="ticks" id="ticks"></div><div class="row2"><b id="dayl"></b><span class="lives" id="lives"></span></div></div>
         <label class="sw" for="dbt"><input type="checkbox" id="dbt"><span id="t-dbt"></span></label>
       </div>
     </div>
@@ -224,7 +259,13 @@ footer{background:var(--g1);color:#b9d6c6;font-size:14px;padding:32px 0}
     <div class="grid2" id="mine"></div>
   </div></section>
 
-  <section class="band" id="spieler" style="padding-top:0"><div class="wrap">
+  <section class="band" id="matchups" style="background:var(--paper);border-block:1px solid var(--line)"><div class="wrap">
+    <h2 id="t-mu"></h2><p class="lead" id="mu-lead"></p>
+    <div class="filters" id="mu-sort"></div>
+    <div class="mgrid" id="mu"></div>
+  </div></section>
+
+  <section class="band" id="spieler"><div class="wrap">
     <h2 id="t-players"></h2><p class="lead" id="players-lead"></p>
     <div class="filters" id="filters"></div>
     <div class="pgrid" id="pgrid"></div>
@@ -240,14 +281,14 @@ footer{background:var(--g1);color:#b9d6c6;font-size:14px;padding:32px 0}
 <script>
 {
 const UI={
-de:{brand:"Set-Optimierer",nav:[["aufstellung","Aufstellung"],["weitere","Weitere"],["zeit","Zeit & Alternativen"],["laufend","Laufend"],["spieler","Spieler"],["treffer","Trefferquote"]],kicker:"Set {set} · Fußball · Stand {t}",head_reset:"Neustart auf Stufe 1: {t} Punkte",head_cur:"Stufe {l}: {t} Punkte",ring:"Chance",f_exp:"Erwartet {v} Punkte",f_rng:"80 % der Fälle zwischen {a} und {b}",f_lock:"Sperre {t}",f_last:"letztes Spiel {t}",target:"Stufenziel",until:"Spiele bis",lives:"Leben",pitch:"Beste Aufstellung",pitch_ok:"Kapitän: {c}",detail:"Die Aufstellung im Detail",detail_lead:"Genau diese Karten aus deiner Galerie. Ein Tipp auf „In Sorare öffnen“ zeigt die Karte in Sorare.",open:"In Sorare öffnen",more:"Aufstellung 2 und 3",more_lead:"Sie ergänzen die beste Aufstellung: Gesucht ist die Chance, dass mindestens eine das Ziel schafft.",together:"mit den vorigen zusammen: {p}",time:"Zeit gegen Chance",time_lead:"Bis zu welchem Tag sollen die Spiele laufen? Tippe auf einen Tag.",best:"beste Aufstellung",anyn:"mindestens eine von {n}",alts:"Alternativen",alts_lead:"Was passiert, wenn du einen Spieler der besten Aufstellung tauschst?",equal:"gleichwertig",pp:"Pkt.",mine:"Laufende Aufstellungen",mine_lead:"Deine gestellten Aufstellungen auf der aktuellen Stufe, live gerechnet.",no_mine:"Keine laufenden Aufstellungen.",pts:"{a} Punkte, noch {b} nötig",locked:"gesperrt",open_l:"änderbar",players:"Spieler",players_lead:"Die stärksten Karten für den gewählten Zeitraum.",search:"Spieler suchen",all:"Alle",pos_G:"Torwart",pos_D:"Abwehr",pos_M:"Mittelfeld",pos_F:"Sturm",ps_G:"TW",ps_D:"ABW",ps_M:"MF",ps_F:"ST",ps_X:"EXT",exp:"erwartet",plays:"spielt",c100:"100+ Pkt.",hit:"Trefferquote",hit_lead:"Backtest 30.10.–24.11.2026 mit bekannter Startelf ({n} Fälle): beste Aufstellung im Schnitt {a} vorhergesagt, {b} geschafft. Mindestens eine von 3: {c} vorhergesagt, {d} geschafft. Vor Bekanntgabe der Startelf: {e} vorhergesagt, {f} geschafft.",hit_live:"Die echte Trefferquote startet mit den ab heute protokollierten Vorschlägen.",pred:"vorhergesagt",real:"geschafft",notes:"Meldungen",no_notes:"Keine Meldungen.",read:"Alle gelesen",foot:"Set-Optimierer · Daten: Sorare-API (Prognosen, Noten, Verletzungen) · Zeiten in deutscher Zeit · Chancen sind Simulationen, keine Garantie. Kein offizielles Sorare-Produkt.",early:"vor Startelf",late:"Startelf bekannt",none:"Für diese Auswahl gibt es keine Aufstellung.",dbt_note:"Fragliche Spieler zählen als fit – riskanter.",cap:"K",st_FINAL:"fertig",st_REVIEWING:"fertig",st_PENDING:"offen",st_DID_NOT_PLAY:"nicht gespielt",lu:"Aufstellung {n}"},
-en:{brand:"Set Optimizer",nav:[["aufstellung","Lineup"],["weitere","More"],["zeit","Time & swaps"],["laufend","Running"],["spieler","Players"],["treffer","Hit rate"]],kicker:"Set {set} · Football · As of {t}",head_reset:"Restart at step 1: {t} points",head_cur:"Step {l}: {t} points",ring:"Chance",f_exp:"Expected {v} points",f_rng:"80% of cases between {a} and {b}",f_lock:"Locks {t}",f_last:"last game {t}",target:"Step target",until:"Games until",lives:"Lives",pitch:"Best lineup",pitch_ok:"Captain: {c}",detail:"The lineup in detail",detail_lead:"Exactly these cards from your gallery. Tap “Open in Sorare” to see the card in Sorare.",open:"Open in Sorare",more:"Lineups 2 and 3",more_lead:"They complement the best lineup: the goal is the chance that at least one hits the target.",together:"together with the ones before: {p}",time:"Time vs. chance",time_lead:"Up to which day should the games run? Tap a day.",best:"best lineup",anyn:"at least one of {n}",alts:"Alternatives",alts_lead:"What happens if you swap a player of the best lineup?",equal:"on par",pp:"pts",mine:"Running lineups",mine_lead:"Your lineups on the current step, calculated live.",no_mine:"No running lineups.",pts:"{a} points, {b} still needed",locked:"locked",open_l:"editable",players:"Players",players_lead:"The strongest cards for the chosen period.",search:"Search players",all:"All",pos_G:"Goalkeeper",pos_D:"Defender",pos_M:"Midfielder",pos_F:"Forward",ps_G:"GK",ps_D:"DEF",ps_M:"MID",ps_F:"FWD",ps_X:"EXT",exp:"expected",plays:"plays",c100:"100+ pts",hit:"Hit rate",hit_lead:"Backtest 30 Oct–24 Nov 2026 with known lineups ({n} cases): best lineup predicted {a} on average, {b} hit. At least one of 3: {c} predicted, {d} hit. Before lineups are known: {e} predicted, {f} hit.",hit_live:"The live hit rate starts with the suggestions logged from today.",pred:"predicted",real:"hit",notes:"Alerts",no_notes:"No alerts.",read:"Mark all read",foot:"Set Optimizer · Data: Sorare API (projections, grades, injuries) · Times in German time · Chances are simulations, not guarantees. Not an official Sorare product.",early:"before lineups",late:"lineups known",none:"No lineup for this selection.",dbt_note:"Doubtful players count as fit – riskier.",cap:"C",st_FINAL:"final",st_REVIEWING:"final",st_PENDING:"pending",st_DID_NOT_PLAY:"did not play",lu:"Lineup {n}"}
+de:{brand:"Set-Optimierer",mu:"Top-Matchups",mu_lead:"Die Teams mit den besten Aussichten im gewählten Zeitraum – laut den Wettquoten bei Sorare. Erwartete Tore sind aus den Zu-null-Quoten geschätzt, die Form stammt aus den Set-Wettbewerben.",s_win:"Siegchance",s_cs:"Zu null",s_xg:"Erwartete Tore",vs:"gegen",home_s:"Heim",away_s:"Auswärts",m_cs:"Zu null",m_xg:"Erw. Tore",m_g3:"3+ Tore",m_form:"Form",m_gfa:"Tore : Gegentore (Schnitt)",m_cards:"Deine Karten",no_cards:"Keine Karte von dir in diesem Spiel.",wdl:"Sieg {w} · Remis {d} · Niederlage {l}",fW:"S",fD:"U",fL:"N",no_mu:"Keine Spiele im gewählten Zeitraum.",win_one:"nur {d}",nav:[["aufstellung","Aufstellung"],["weitere","Weitere"],["zeit","Zeit & Alternativen"],["laufend","Laufend"],["matchups","Top-Matchups"],["spieler","Spieler"],["treffer","Trefferquote"]],kicker:"Set {set} · Fußball · Stand {t}",head_reset:"Neustart auf Stufe 1: {t} Punkte",head_cur:"Stufe {l}: {t} Punkte",ring:"Chance",f_exp:"Erwartet {v} Punkte",f_rng:"80 % der Fälle zwischen {a} und {b}",f_lock:"Sperre {t}",f_last:"letztes Spiel {t}",target:"Stufenziel",until:"Zeitraum der Spiele",lives:"Leben",pitch:"Beste Aufstellung",pitch_ok:"Kapitän: {c}",detail:"Die Aufstellung im Detail",detail_lead:"Genau diese Karten aus deiner Galerie. Ein Tipp auf „In Sorare öffnen“ zeigt die Karte in Sorare.",open:"In Sorare öffnen",more:"Weitere Aufstellungen",more_lead:"Sie ergänzen die beste Aufstellung: Gesucht ist die Chance, dass mindestens eine das Ziel schafft.",together:"mit den vorigen zusammen: {p}",time:"Zeit gegen Chance",time_lead:"Wie ändert sich die Chance, wenn die Spiele länger laufen dürfen? Ab dem Starttag, je letztem Spieltag – tippe auf einen Tag.",best:"beste Aufstellung",anyn:"mindestens eine von {n}",alts:"Alternativen",alts_lead:"Was passiert, wenn du einen Spieler der besten Aufstellung tauschst?",equal:"gleichwertig",pp:"Pkt.",mine:"Laufende Aufstellungen",mine_lead:"Deine gestellten Aufstellungen auf der aktuellen Stufe, live gerechnet.",no_mine:"Keine laufenden Aufstellungen.",pts:"{a} Punkte, noch {b} nötig",locked:"gesperrt",open_l:"änderbar",players:"Spieler",players_lead:"Die stärksten Karten für den gewählten Zeitraum.",search:"Spieler suchen",all:"Alle",pos_G:"Torwart",pos_D:"Abwehr",pos_M:"Mittelfeld",pos_F:"Sturm",ps_G:"TW",ps_D:"ABW",ps_M:"MF",ps_F:"ST",ps_X:"EXT",exp:"erwartet",plays:"spielt",c100:"100+ Pkt.",hit:"Trefferquote",hit_lead:"Backtest 30.10.–24.11.2026 mit bekannter Startelf ({n} Fälle): beste Aufstellung im Schnitt {a} vorhergesagt, {b} geschafft. Mindestens eine von 3: {c} vorhergesagt, {d} geschafft. Vor Bekanntgabe der Startelf: {e} vorhergesagt, {f} geschafft.",hit_live:"Die echte Trefferquote startet mit den ab heute protokollierten Vorschlägen.",pred:"vorhergesagt",real:"geschafft",notes:"Meldungen",no_notes:"Keine Meldungen.",read:"Alle gelesen",foot:"Set-Optimierer · Daten: Sorare-API (Prognosen, Noten, Verletzungen) · Zeiten in deutscher Zeit · Chancen sind Simulationen, keine Garantie. Kein offizielles Sorare-Produkt.",early:"vor Startelf",late:"Startelf bekannt",none:"Für diese Auswahl gibt es keine Aufstellung.",dbt_note:"Fragliche Spieler zählen als fit – riskanter.",cap:"K",st_FINAL:"fertig",st_REVIEWING:"fertig",st_PENDING:"offen",st_DID_NOT_PLAY:"nicht gespielt",lu:"Aufstellung {n}"},
+en:{brand:"Set Optimizer",mu:"Top matchups",mu_lead:"Teams with the best prospects in the chosen time window – based on the betting odds at Sorare. Expected goals are estimated from clean sheet odds; form comes from the Set competitions.",s_win:"Win chance",s_cs:"Clean sheet",s_xg:"Expected goals",vs:"vs",home_s:"Home",away_s:"Away",m_cs:"Clean sheet",m_xg:"Exp. goals",m_g3:"3+ goals",m_form:"Form",m_gfa:"Goals : conceded (avg)",m_cards:"Your cards",no_cards:"None of your cards in this game.",wdl:"Win {w} · Draw {d} · Loss {l}",fW:"W",fD:"D",fL:"L",no_mu:"No games in the chosen time window.",win_one:"only {d}",nav:[["aufstellung","Lineup"],["weitere","More"],["zeit","Time & swaps"],["laufend","Running"],["matchups","Matchups"],["spieler","Players"],["treffer","Hit rate"]],kicker:"Set {set} · Football · As of {t}",head_reset:"Restart at step 1: {t} points",head_cur:"Step {l}: {t} points",ring:"Chance",f_exp:"Expected {v} points",f_rng:"80% of cases between {a} and {b}",f_lock:"Locks {t}",f_last:"last game {t}",target:"Step target",until:"Time window of the games",lives:"Lives",pitch:"Best lineup",pitch_ok:"Captain: {c}",detail:"The lineup in detail",detail_lead:"Exactly these cards from your gallery. Tap “Open in Sorare” to see the card in Sorare.",open:"Open in Sorare",more:"More lineups",more_lead:"They complement the best lineup: the goal is the chance that at least one hits the target.",together:"together with the ones before: {p}",time:"Time vs. chance",time_lead:"How does the chance change if the games may run longer? From the start day, by last game day – tap a day.",best:"best lineup",anyn:"at least one of {n}",alts:"Alternatives",alts_lead:"What happens if you swap a player of the best lineup?",equal:"on par",pp:"pts",mine:"Running lineups",mine_lead:"Your lineups on the current step, calculated live.",no_mine:"No running lineups.",pts:"{a} points, {b} still needed",locked:"locked",open_l:"editable",players:"Players",players_lead:"The strongest cards for the chosen period.",search:"Search players",all:"All",pos_G:"Goalkeeper",pos_D:"Defender",pos_M:"Midfielder",pos_F:"Forward",ps_G:"GK",ps_D:"DEF",ps_M:"MID",ps_F:"FWD",ps_X:"EXT",exp:"expected",plays:"plays",c100:"100+ pts",hit:"Hit rate",hit_lead:"Backtest 30 Oct–24 Nov 2026 with known lineups ({n} cases): best lineup predicted {a} on average, {b} hit. At least one of 3: {c} predicted, {d} hit. Before lineups are known: {e} predicted, {f} hit.",hit_live:"The live hit rate starts with the suggestions logged from today.",pred:"predicted",real:"hit",notes:"Alerts",no_notes:"No alerts.",read:"Mark all read",foot:"Set Optimizer · Data: Sorare API (projections, grades, injuries) · Times in German time · Chances are simulations, not guarantees. Not an official Sorare product.",early:"before lineups",late:"lineups known",none:"No lineup for this selection.",dbt_note:"Doubtful players count as fit – riskier.",cap:"C",st_FINAL:"final",st_REVIEWING:"final",st_PENDING:"pending",st_DID_NOT_PLAY:"did not play",lu:"Lineup {n}"}
 };
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const store={get(k,d){try{const v=localStorage.getItem("setopt_"+k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("setopt_"+k,JSON.stringify(v))}catch(e){}}};
 let D=null;
-const S={lang:store.get("lang",(navigator.language||"de").toLowerCase().startsWith("de")?"de":"en"),T:null,day:0,dbt:store.get("dbt",false),lives:4,pos:"all",q:""};
+const S={mu:store.get("mu","win"),lang:store.get("lang",(navigator.language||"de").toLowerCase().startsWith("de")?"de":"en"),T:null,day:0,dbt:store.get("dbt",false),lives:4,pos:"all",q:""};
 const tr=(k,p)=>{const t=UI[S.lang][k]??D?.i18n?.[S.lang]?.[k]??k;return p?String(t).replace(/\{(\w+)\}/g,(m,x)=>p[x]??""):t};
 const pct=p=>new Intl.NumberFormat(S.lang,{style:"percent",maximumFractionDigits:(p>0&&p<.1)||(p>.99&&p<1)?1:0}).format(p);
 const num=v=>new Intl.NumberFormat(S.lang,{maximumFractionDigits:0}).format(v);
@@ -259,8 +300,10 @@ const initials=n=>String(n).split(/[\s -]+/).filter(Boolean).map(w=>w[0]).slice
 const edc=e=>"e-"+String(e||"Standard").split(" ")[0];
 const sorareUrl=s=>"https://sorare.com/football/cards/"+encodeURIComponent(s);
 const reason=w=>{const p=Object.assign({},w);if(p.until)p.until=fmt(p.until,{day:"numeric",month:"numeric"});if(p.goals!=null)p.goals=new Intl.NumberFormat(S.lang).format(p.goals);if(p.avg!=null)p.avg=new Intl.NumberFormat(S.lang).format(p.avg);return tr(w.key,p)};
-const sug=(day=S.day)=>{const v=D.sugg[S.dbt?"1":"0"][String(S.T)];return v?v[D.days[day]]:null};
-const nL=()=>Math.max(0,Math.min(3,S.lives));
+const sug=(f=S.from,t=S.to)=>{const v=D.sugg[S.dbt?"1":"0"][String(S.T)];return v?v[D.days[f]+"_"+D.days[t]]:null};
+const nL=()=>Math.max(0,Math.min(4,S.lives));
+const bday=iso=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Berlin",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(iso));
+const inWin=iso=>{const d=bday(iso);return d>=D.days[S.from]&&d<=D.days[S.to]};
 const posOf=slot=>({GK:"G",DEF:"D",MID:"M",FWD:"F"})[slot];
 const noteId=n=>n.time+n.player+n.key;
 
@@ -292,7 +335,10 @@ function renderHero(){
   $("t-target").textContent=tr("target");$("t-until").textContent=tr("until");$("t-dbt").textContent=tr("with_doubtful");
   $("targets").innerHTML=D.targets.map(t=>`<button class="chip" data-t="${t}" aria-pressed="${t===S.T}">${num(t)}</button>`).join("");
   for(const b of $("targets").querySelectorAll("button"))b.onclick=()=>{S.T=+b.dataset.t;store.set("T",S.T);render()};
-  const r=$("day");r.max=D.days.length-1;r.value=S.day;$("dayl").textContent=dayLong(D.days[S.day]);$("dbt").checked=S.dbt;
+  const mx=D.days.length-1;for(const [id,v,lab] of [["dfrom",S.from,"von"],["dto",S.to,"bis"]]){const r=$(id);r.max=mx;r.value=v;r.setAttribute("aria-label",tr("until")+" – "+(S.lang==="de"?lab:(lab==="von"?"from":"to")));r.setAttribute("aria-valuetext",dayLong(D.days[v]))}
+  const pc=i=>mx?i/mx*100:0;$("rfill").style.left=pc(S.from)+"%";$("rfill").style.width=(pc(S.to)-pc(S.from))+"%";
+  $("ticks").innerHTML=D.days.map(d=>`<span>${esc(fmt(d+"T12:00:00Z",{weekday:"short"}))}</span>`).join("");
+  $("dayl").textContent=S.from===S.to?tr("win_one",{d:dayLong(D.days[S.from])}):dayShort(D.days[S.from])+" – "+dayShort(D.days[S.to]);$("dbt").checked=S.dbt;
   $("lives").innerHTML=`${esc(tr("lives"))} <button id="lv-" aria-label="−">−</button><b>${S.lives}</b><button id="lv+" aria-label="+">+</button>`;
   $("lv-").onclick=()=>{S.lives=Math.max(0,S.lives-1);render()};$("lv+").onclick=()=>{S.lives=Math.min(4,S.lives+1);render()};
   const sg=sug();const l=sg&&sg.l[0];
@@ -327,10 +373,10 @@ function renderMore(){
 
 function renderTime(){
   $("t-time").textContent=tr("time");$("time-lead").textContent=tr("time_lead");const n=nL();
-  $("days").innerHTML=D.days.map((d,i)=>{const sg=sug(i);const b=sg&&sg.l[0]?sg.l[0].p:0;const a=sg&&sg.l.length&&n?sg.l[Math.min(n,sg.l.length)-1].pa:0;
-    return `<button class="daycol" data-i="${i}" aria-pressed="${i===S.day}"><span class="v">${esc(pct(b))}</span><span class="bars"><span class="a" style="height:${(a*100).toFixed(1)}%"></span><span class="b" style="height:${(b*100).toFixed(1)}%"></span></span><span class="l">${esc(dayShort(d))}</span></button>`}).join("");
-  for(const b of $("days").querySelectorAll("button"))b.onclick=()=>{S.day=+b.dataset.i;store.set("day",S.day);render()};
-  $("days-leg").innerHTML=`<span><i style="background:var(--acc)"></i>${esc(tr("best"))}</span><span><i style="background:color-mix(in srgb,var(--acc) 35%,transparent)"></i>${esc(tr("anyn",{n}))}</span>`;
+  $("days").innerHTML=D.days.map((d,i)=>{const off=i<S.from;const sg=off?null:sug(S.from,i);const b=sg&&sg.l[0]?sg.l[0].p:0;const a=sg&&sg.l.length&&n?sg.l[Math.min(n,sg.l.length)-1].pa:0;
+    return `<button class="daycol" data-i="${i}" aria-pressed="${i===S.to}"${off?" disabled":""}><span class="v">${off?"–":esc(pct(b))}</span><span class="bars"><span class="a" style="height:${(a*100).toFixed(1)}%"></span><span class="b" style="height:${(b*100).toFixed(1)}%"></span></span><span class="l">${esc(dayShort(d))}</span></button>`}).join("");
+  for(const b of $("days").querySelectorAll("button"))b.onclick=()=>{S.to=+b.dataset.i;if(S.to<S.from)S.from=S.to;store.set("win",[S.from,S.to]);render()};
+  $("days-leg").innerHTML=`<span><i style="background:var(--acc)"></i>${esc(tr("best"))}</span>${n>1?`<span><i style="background:color-mix(in srgb,var(--acc) 35%,transparent)"></i>${esc(tr("anyn",{n}))}</span>`:""}`;
   $("t-alts").textContent=tr("alts");$("alts-lead").textContent=tr("alts_lead");
   const sg=sug();if(!sg||!sg.l.length){$("alts").innerHTML="";return}
   $("alts").innerHTML=sg.alts.map((a,k)=>{const cur=D.items[sg.l[0].pl[k][0]];return `<li><div><b>${esc(tr("slot_"+a.slot))}</b><br><span class="mute">${esc(cur?cur.n:"")}</span></div><div>${a.opts.map(([id,p,dl])=>{const it=D.items[id];const t=Math.abs(dl)<.01?tr("equal"):(dl>0?"+":"−")+new Intl.NumberFormat(S.lang,{maximumFractionDigits:1}).format(Math.abs(dl*100))+" "+tr("pp");return `<div class="o"><span>${esc(it.n)} <span class="pill">${esc(it.ed)}</span>${it.dbt?` <span class="pill w">${esc(tr("doubtful_tag"))}</span>`:""}</span><span>${esc(pct(p))} · <span class="${dl>=.01?"up":""}">${esc(t)}</span></span></div>`}).join("")}</div></li>`}).join("");
@@ -352,8 +398,7 @@ function renderPlayers(){
   drawPlayers();
 }
 function drawPlayers(){
-  const end=new Date(D.days[S.day]+"T23:59:00+01:00");
-  let ids=(S.pos==="all"?["G","D","M","F"]:[S.pos]).flatMap(p=>D.top[p]||[]).filter(id=>{const it=D.items[id];return it&&new Date(it.d)<=end&&(!S.q||it.n.toLowerCase().includes(S.q.toLowerCase()))});
+  let ids=(S.pos==="all"?["G","D","M","F"]:[S.pos]).flatMap(p=>D.top[p]||[]).filter(id=>{const it=D.items[id];return it&&inWin(it.d)&&(!S.q||it.n.toLowerCase().includes(S.q.toLowerCase()))});
   ids.sort((a,b)=>D.items[b].mean-D.items[a].mean);
   $("pgrid").innerHTML=ids.length?ids.slice(0,48).map(id=>{const it=D.items[id];const w=(it.why||[])[0];return `<div class="pc"><span class="sw2 ${edc(it.ed)}">${esc(initials(it.n))}</span><div><h3>${esc(it.n)}</h3><p class="m">${esc(tr("ps_"+it.pos))} · ${esc(it.ed)} · ${esc(when(it.d))}</p><p class="m">${esc(it.m)}</p><div class="k"><span><b>${num(it.mean)}</b> ${esc(tr("exp"))}</span><span>${esc(tr("plays"))} ${esc(pct(it.pp??0))}</span><span>${esc(tr("c100"))} ${esc(pct(it.p100))}</span></div>${it.dbt?`<span class="pill w">${esc(tr("doubtful_tag"))}</span> `:""}${w?`<p class="m" style="margin-top:4px">${esc(reason(w))}</p>`:""}</div></div>`}).join(""):`<p class="empty">${esc(tr("none"))}</p>`;
 }
@@ -367,15 +412,38 @@ function renderHit(){
   $("foot").textContent=tr("foot");
 }
 
-function render(){renderNav();renderHero();renderDetail();renderMore();renderTime();renderMine();renderPlayers();renderHit()}
+function renderMatchups(){
+  $("t-mu").textContent=tr("mu");$("mu-lead").textContent=tr("mu_lead");
+  const keys=[["win","s_win"],["cs","s_cs"],["xg","s_xg"]];
+  $("mu-sort").innerHTML=keys.map(([k,l])=>`<button class="fchip" data-k="${k}" aria-pressed="${S.mu===k}">${esc(tr(l))}</button>`).join("");
+  for(const b of $("mu-sort").querySelectorAll("button"))b.onclick=()=>{S.mu=b.dataset.k;store.set("mu",S.mu);renderMatchups()};
+  const rows=[];for(const m of D.matchups||[]){if(!inWin(m.date))continue;rows.push({m,t:m.home,o:m.away,h:1},{m,t:m.away,o:m.home,h:0})}
+  const val=r=>r.t[S.mu]??-1;rows.sort((a,b)=>val(b)-val(a));
+  if(!rows.length){$("mu").innerHTML=`<p class="empty">${esc(tr("no_mu"))}</p>`;return}
+  const p1=v=>v==null?"–":pct(v);const g2=v=>v==null?"–":new Intl.NumberFormat(S.lang,{minimumFractionDigits:1,maximumFractionDigits:1}).format(v);
+  $("mu").innerHTML=rows.slice(0,16).map((r,k)=>{const t=r.t,f=t.form;const big=S.mu==="xg"?g2(t.xg):p1(t[S.mu]);
+    const w=t.win||0,dd=t.draw||0,l=t.lose||0;
+    const cards=(t.cards||[]).map(id=>{const it=D.items[id];return it?`<span class="chip2"><i class="${edc(it.ed)}"></i>${esc(it.n)} <b>${num(it.mean)}</b></span>`:""}).join("");
+    return `<article class="mc"><div class="mh"><span class="rk">${k+1}</span><div><h3>${esc(t.name)}</h3><p class="m">${esc(tr("vs"))} ${esc(r.o.name)} · ${esc(tr(r.h?"home_s":"away_s"))} · ${esc(when(r.m.date))} · ${esc(r.m.comp)}</p></div><span class="big">${esc(big)}</span></div>
+<div><div class="wdl" aria-hidden="true"><i class="w" style="width:${(w*100).toFixed(1)}%"></i><i class="d" style="width:${(dd*100).toFixed(1)}%"></i><i class="l" style="width:${(l*100).toFixed(1)}%"></i></div><p class="wdlt">${esc(tr("wdl",{w:p1(t.win),d:p1(t.draw),l:p1(t.lose)}))}</p></div>
+<dl class="ms"><div><dt>${esc(tr("m_cs"))}</dt><dd>${esc(p1(t.cs))}</dd></div><div><dt>${esc(tr("m_xg"))}</dt><dd>${esc(g2(t.xg))}</dd></div><div><dt>${esc(tr("m_g3"))}</dt><dd>${esc(p1(t.g3))}</dd></div></dl>
+<div class="mrow"><span>${esc(tr("m_form"))} ${f&&f.res?[...f.res].map(c=>`<span class="fm ${c}">${esc(tr("f"+c))}</span>`).join(""):"–"}</span><span class="mute">${f?esc(tr("m_gfa"))+" "+esc(g2(f.gf))+" : "+esc(g2(f.ga)):""}</span></div>
+<div><p class="mute" style="font-size:13px;margin-bottom:4px">${esc(tr("m_cards"))}</p><div class="mcards">${cards||`<span class="mute" style="font-size:13px">${esc(tr("no_cards"))}</span>`}</div></div></article>`}).join("");
+}
+
+function render(){renderNav();renderHero();renderDetail();renderMore();renderTime();renderMine();renderMatchups();renderPlayers();renderHit()}
 
 function start(data){
   D=data;
+  // kompakte Daten aufklappen: Karten-Nummer -> [Slug, Edition, Bonus]; gleiche Variante "fraglich" -> Standardvariante
+  if(D.cards){for(const v of ["0","1"])for(const T in D.sugg[v])for(const w in D.sugg[v][T]){const x=D.sugg[v][T][w];if(x&&!x._u){x._u=1;for(const l of x.l)l.pl=l.pl.map(([id,slot,c,ci])=>[id,slot,c,...D.cards[ci]])}}
+    for(const T in D.sugg["1"])for(const w in D.sugg["1"][T])if(!D.sugg["1"][T][w])D.sugg["1"][T][w]=D.sugg["0"][T][w];}
   S.T=store.get("T",D.focus.target);if(!D.targets.includes(S.T))S.T=D.focus.target;
-  S.day=Math.min(store.get("day",0),D.days.length-1);
+  const w=store.get("win",[0,0]),mx=D.days.length-1;S.from=Math.max(0,Math.min(+w[0]||0,mx));S.to=Math.max(S.from,Math.min(+w[1]||0,mx));
   S.lives=D.focus.key==="focus_after_reset"?4:(D.board.current?D.board.current.remaining:4);
   $("lang").onclick=()=>{S.lang=S.lang==="de"?"en":"de";store.set("lang",S.lang);render()};
-  $("day").oninput=e=>{S.day=+e.target.value;store.set("day",S.day);render()};
+  const onRange=which=>()=>{let f=+$("dfrom").value,t=+$("dto").value;if(which==="f"&&f>t)t=f;if(which==="t"&&t<f)f=t;S.from=f;S.to=t;store.set("win",[f,t]);render()};
+  $("dfrom").oninput=onRange("f");$("dto").oninput=onRange("t");
   $("dbt").onchange=e=>{S.dbt=e.target.checked;store.set("dbt",S.dbt);render()};
   $("bell").onclick=()=>{const p=$("notes");p.hidden=!p.hidden;$("bell").setAttribute("aria-expanded",String(!p.hidden))};
   render();

@@ -16,11 +16,14 @@ Q_LIST_SET = '''query($f:ISO8601DateTime,$t:ISO8601DateTime){ cardSet { currentS
   competitionGames(fromDate:$f, toDate:$t) { competition { slug } games { id date } } } } }'''
 Q_LIST_ALL = '''query($f:ISO8601DateTime,$t:ISO8601DateTime){ competitionGames(sport: FOOTBALL, fromDate:$f, toDate:$t) {
   competition { slug } games { id date } } }'''
-Q_GAME = '''query($id:ID!){ anyGame(id:$id){ id date statusTyped competition { slug }
+# Quoten je Team (öffentlich in der Sorare-API): Sieg/Remis/Niederlage in Basispunkten, Zu null und 3+ Tore als Dezimalquote
+ODDS_FIELDS = "winOddsBasisPoints drawOddsBasisPoints loseOddsBasisPoints cleanSheetOdds threeGoalsOdds"
+Q_GAME = '''query($id:ID!){ anyGame(id:$id){ id date statusTyped competition { slug name }
   homeTeam { slug name } awayTeam { slug name } homeScore awayScore
+  homeStats { ... on FootballTeamGameStats { ODDS } } awayStats { ... on FootballTeamGameStats { ODDS } }
   playerGameScores { score scoreStatus projectedScore projection { grade reliabilityBasisPoints score }
     positionTyped anyPlayer { slug }
-    anyPlayerGameStats { ... on PlayerGameStats { minsPlayed gameStarted fieldStatus anyTeam { slug } } } } } }'''
+    anyPlayerGameStats { ... on PlayerGameStats { minsPlayed gameStarted fieldStatus anyTeam { slug } } } } } }'''.replace("ODDS", ODDS_FIELDS)
 
 
 def list_games(d_from, d_to, mode):

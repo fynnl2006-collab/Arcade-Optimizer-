@@ -32,6 +32,8 @@ SNAP_DIR = os.path.join(BASE, "data", "snapshots")
 WINDOW_DAYS = 5
 LINEUP_KNOWN_MIN = 19   # ab so vielen Spielern mit Note A-E gilt die Startelf als bekannt
 SLOT_NAMES = ["GK", "DEF", "MID", "FWD", "EXTRA"]
+MAX_LINEUPS = 4        # so viele Aufstellungen wie Leben je Stufe; die Seite zeigt so viele wie freie Leben
+NEXT_STEP_GAP = dt.timedelta(hours=2, minutes=5)  # Anstoß letztes Spiel -> nächste Stufe/Neustart stellbar (laut Fynn)
 
 Q_BOARD = '''query($u:String!){ user(slug:$u){ setBoard(mode: CAREER, sport: FOOTBALL) { ... on CareerBoard {
   configSlug steps { level target state ... on CareerStep { id maxLineupsCount lockedLineupsCount
@@ -164,6 +166,37 @@ def team_defense(rows_games):
     return {t: float(np.mean(v[-6:])) for t, v in conceded.items() if v}
 
 
+def team_form(played):
+    """Form je Team aus den gespeicherten Spielen (nur Set-Wettbewerbe): Tore und Gegentore im Schnitt der letzten 6,
+    Ergebnisse der letzten 5 (W/D/L; die Seite übersetzt in S/U/N)."""
+    hist = defaultdict(list)
+    for g in sorted(played, key=lambda g: g["date"]):
+        if g.get("homeScore") is None:
+            continue
+        hist[g["homeTeam"]["slug"]].append((g["homeScore"], g["awayScore"]))
+        hist[g["awayTeam"]["slug"]].append((g["awayScore"], g["homeScore"]))
+    out = {}
+    for t, v in hist.items():
+        last = v[-6:]
+        out[t] = {"gf": round(float(np.mean([x for x, _ in last])), 2), "ga": round(float(np.mean([y for _, y in last])), 2),
+                  "res": "".join("W" if x > y else "D" if x == y else "L" for x, y in v[-5:])}
+    return out
+
+
+def team_odds(st):
+    """Quoten eines Teams aus der Sorare-API: Sieg/Remis/Niederlage als Wahrscheinlichkeit (Basispunkte / 10.000),
+    Zu null und 3+ Tore als implizite Wahrscheinlichkeit 1 / Dezimalquote (enthält etwas Buchmacher-Marge)."""
+    st = st or {}
+
+    def bp(k):
+        return round(st[k] / 10000, 4) if st.get(k) is not None else None
+
+    def inv(k):
+        return round(min(0.99, 1 / st[k]), 4) if st.get(k) else None
+    return {"win": bp("winOddsBasisPoints"), "draw": bp("drawOddsBasisPoints"), "lose": bp("loseOddsBasisPoints"),
+            "cs": inv("cleanSheetOdds"), "g3": inv("threeGoalsOdds")}
+
+
 def load_played_games():
     import glob
     res = []
@@ -203,15 +236,20 @@ def slot_ok(slot, pos):
 
 
 # ---------------------------------------------------------------- Optimierer mit Kartenregel
-def optimize_cards(raw, bonus, items, target, card_free, pool_size=30, rounds=8, fixed_lineup=None, prev_any=None):
+def col_stats(raw):
+    """Mittelwert und 85-%-Quantil je Spieler-Spiel (Rohpunkte), einmal je Szenario-Matrix statt bei jeder Suche.
+    Mit Bonus werden beide nur mit (1 + Bonus) multipliziert – ein fester Faktor verschiebt Mittelwert und Quantile gleich."""
+    return raw.mean(0), np.quantile(raw, 0.85, axis=0)
+
+
+def optimize_cards(raw, bonus, items, target, card_free, stats, pool_size=30, rounds=8, prev_any=None):
     """Lokale Suche wie model.optimize, aber:
     - in einer Aufstellung jeder Spieler höchstens einmal,
-    - ein Spieler-Spiel nur, wenn dafür noch eine freie Karte da ist (card_free[(player, game)] > 0)."""
+    - ein Spieler-Spiel nur, wenn dafür noch eine freie Karte da ist (card_free[(player, game)] > 0).
+    Gerechnet wird nur mit den Spalten der Vorauswahl (schnell, wenig Speicher)."""
     n = raw.shape[1]
-    counted = raw * (1 + bonus)[None, :]
-    cap = M.CAPTAIN_BONUS * raw
-    mean_c = counted.mean(0)
-    q85 = np.quantile(counted, 0.85, axis=0)
+    mean_c = stats[0] * (1 + bonus)
+    q85 = stats[1] * (1 + bonus)
     if prev_any is None:
         prev_any = np.zeros(raw.shape[0], dtype=bool)
     pa = prev_any[:, None]
@@ -224,9 +262,10 @@ def optimize_cards(raw, bonus, items, target, card_free, pool_size=30, rounds=8,
         top = sorted(el, key=lambda i: -mean_c[i])[:pool_size]
         top += [i for i in sorted(el, key=lambda i: -q85[i])[:pool_size // 2] if i not in top]
         pools.append(top)
-
-    def players_of(lu, skip):
-        return {items[lu[k]]["player"] for k in range(5) if k != skip}
+    cols = sorted({i for p in pools for i in p})
+    pos = {i: k for k, i in enumerate(cols)}
+    counted = raw[:, cols] * (1 + bonus[cols])[None, :]
+    cap = M.CAPTAIN_BONUS * raw[:, cols]
 
     starts = []
     for metric in (mean_c, q85):
@@ -238,25 +277,24 @@ def optimize_cards(raw, bonus, items, target, card_free, pool_size=30, rounds=8,
                 return None
             chosen.append(max(c, key=lambda i: metric[i]))
         starts.append(chosen)
-    if fixed_lineup:
-        starts = [list(fixed_lineup)]
     best = (None, -1.0, None)
     for lu in starts:
         capt = max(lu, key=lambda i: mean_c[i])
-        p = float(np.mean(prev_any | (counted[:, lu].sum(1) + cap[:, capt] >= target)))
+        p = float(np.mean(prev_any | (counted[:, [pos[i] for i in lu]].sum(1) + cap[:, pos[capt]] >= target)))
         for _ in range(rounds):
             improved = False
             for s in range(5):
                 others = [lu[k] for k in range(5) if k != s]
-                taken = players_of(lu, s)
-                cands = np.array([i for i in pools[s] if items[i]["player"] not in taken])
-                if len(cands) == 0:
+                taken = {items[i]["player"] for i in others}
+                cands = [i for i in pools[s] if items[i]["player"] not in taken]
+                if not cands:
                     continue
-                base = counted[:, others].sum(1)[:, None] + counted[:, cands]
-                best_p = np.mean(pa | (base + cap[:, cands] >= target), axis=0)
-                best_cap = cands.copy()
+                cl = [pos[i] for i in cands]
+                base = counted[:, [pos[i] for i in others]].sum(1)[:, None] + counted[:, cl]
+                best_p = np.mean(pa | (base + cap[:, cl] >= target), axis=0)
+                best_cap = np.array(cands)
                 for o in others:
-                    pr = np.mean(pa | (base + cap[:, [o]] >= target), axis=0)
+                    pr = np.mean(pa | (base + cap[:, [pos[o]]] >= target), axis=0)
                     better = pr > best_p
                     best_p = np.where(better, pr, best_p)
                     best_cap = np.where(better, o, best_cap)
@@ -274,26 +312,28 @@ def lineup_total(raw, bonus, idx, captain):
     return sum(raw[:, i] * (1 + bonus[i]) for i in idx) + M.CAPTAIN_BONUS * raw[:, captain]
 
 
-def alternatives(raw_eval, bonus, items, lu, target, card_free, k=2):
+def alternatives(raw_eval, bonus, items, lu, target, card_free, stats, k=2):
     """Je Position die k besten Ersatzspieler und wie sich die Chance dann ändert."""
     idx, capt = lu["idx"], lu["captain"]
     p0 = float(np.mean(lineup_total(raw_eval, bonus, idx, capt) >= target))
-    counted = raw_eval * (1 + bonus)[None, :]
+    mean_c = stats[0] * (1 + bonus)
     res = []
     for s in range(5):
         others = [idx[j] for j in range(5) if j != s]
         taken = {items[i]["player"] for i in others}
         cands = [i for i in range(len(items)) if slot_ok(s, items[i]["pos"]) and items[i]["player"] not in taken
                  and i != idx[s] and card_free.get((items[i]["player"], items[i]["game"]), 0) > 0]
-        cands = sorted(cands, key=lambda i: -counted[:, i].mean())[:40]
-        scored = []
-        for c in cands:
-            new_capt = capt if capt != idx[s] else c
-            tot = counted[:, others].sum(1) + counted[:, c] + M.CAPTAIN_BONUS * raw_eval[:, new_capt]
-            scored.append((float(np.mean(tot >= target)), c))
-        scored.sort(reverse=True)
-        res.append({"slot": SLOT_NAMES[s], "current": items[idx[s]]["player"],
-                    "options": [{"item": c, "p": round(p, 4), "delta": round(p - p0, 4)} for p, c in scored[:k]]})
+        cands = sorted(cands, key=lambda i: -mean_c[i])[:40]
+        opts = []
+        if cands:
+            rest = (raw_eval[:, others] * (1 + bonus[others])[None, :]).sum(1)
+            tot = rest[:, None] + raw_eval[:, cands] * (1 + bonus[cands])[None, :]
+            # war der Ersetzte Kapitän, übernimmt der Neue die Binde
+            tot += M.CAPTAIN_BONUS * (raw_eval[:, [capt]] if capt != idx[s] else raw_eval[:, cands])
+            ps = np.mean(tot >= target, axis=0)
+            opts = [{"item": int(cands[j]), "p": round(float(ps[j]), 4), "delta": round(float(ps[j]) - p0, 4)}
+                    for j in np.argsort(-ps, kind="stable")[:k]]
+        res.append({"slot": SLOT_NAMES[s], "current": items[idx[s]]["player"], "options": opts})
     return res
 
 
@@ -330,18 +370,18 @@ def explain(it, defense):
     return reasons[:3]
 
 
-def suggest(raw_opt, raw_eval, bonus, items, T, sugg_free, n_opt, n_eval):
-    """Die 3 besten Aufstellungen für ein Ziel mit den erlaubten Karten (sugg_free) + Alternativen."""
+def suggest(raw_opt, raw_eval, st_opt, st_eval, bonus, items, T, sugg_free, n_opt, n_eval):
+    """Die bis zu MAX_LINEUPS besten Aufstellungen für ein Ziel mit den erlaubten Karten (sugg_free) + Alternativen."""
     free = dict(sugg_free)
     lus = []
     any_ok = np.zeros(n_eval, dtype=bool)
     any_opt = np.zeros(n_opt, dtype=bool)
     used = defaultdict(int)  # wie viele Kopien je (Spieler, Spiel) schon in Vorschlägen stecken
-    for _ in range(3):
+    for _ in range(MAX_LINEUPS):
         # Bonus der nächsten freien Kopie (zweite Karte kann schwächer sein als die beste)
         b_eff = np.array([it["free_cards"][min(used[(it["player"], it["game"])], len(it["free_cards"]) - 1)]["b"]
                           for it in items], dtype=np.float32)
-        lu = optimize_cards(raw_opt, b_eff, items, T, free, prev_any=any_opt)
+        lu = optimize_cards(raw_opt, b_eff, items, T, free, st_opt, prev_any=any_opt)
         if lu is None:
             break
         any_opt |= lineup_total(raw_opt, b_eff, lu["idx"], lu["captain"]) >= T
@@ -362,7 +402,7 @@ def suggest(raw_opt, raw_eval, bonus, items, T, sugg_free, n_opt, n_eval):
                     "_lu": lu})
         for i in lu["idx"]:
             free[(items[i]["player"], items[i]["game"])] -= 1
-    alts = alternatives(raw_eval, bonus, items, lus[0]["_lu"], T, sugg_free) if lus else []
+    alts = alternatives(raw_eval, bonus, items, lus[0]["_lu"], T, sugg_free, st_eval) if lus else []
     for l in lus:
         l.pop("_lu")
     return {"lineups": lus, "p_any": round(float(any_ok.mean()), 4), "alternatives": alts}
@@ -406,7 +446,9 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
     hist = defaultdict(list)
     for r in rows:
         hist[r["player"]].append(r)
-    defense = team_defense(load_played_games())
+    played = load_played_games()
+    defense = team_defense(played)
+    form = team_form(played)
 
     # Kandidaten: (Spieler, Spiel) aus Fynns Karten
     items = []
@@ -522,14 +564,23 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
         last = [M.parse_date(a["game"]["date"]) for lu in lineups if lu["aasmState"] not in ("FAILED", "CANCELLED")
                 for a in lu["taskAppearances"] if a.get("game")]
         if last:
-            earliest = max(last) + dt.timedelta(hours=2)
+            earliest = max(last) + NEXT_STEP_GAP
     focus_note["from"] = earliest.isoformat()
 
-    # Regler "bis wann": nur Spiele mit Anstoß bis zum Ende des gewählten Tages (deutsche Zeit)
-    berlin = ZoneInfo("Europe/Berlin")  # beachtet Sommer- und Winterzeit
-    days = sorted({M.parse_date(it["date"]).astimezone(berlin).date() for it in items
-                   if M.parse_date(it["date"]) >= earliest})
-    deadlines = [(str(d), dt.datetime(d.year, d.month, d.day, 23, 59, tzinfo=berlin)) for d in days]
+    # Zeitfenster "von–bis": Vorschläge für jedes Fenster aus Starttag und Endtag (deutsche Zeit, inkl. Sommerzeit)
+    berlin = ZoneInfo("Europe/Berlin")
+    it_dt = [M.parse_date(it["date"]) for it in items]
+    days = sorted({d.astimezone(berlin).date() for d in it_dt if d >= earliest})
+
+    def day_start(d):
+        return dt.datetime(d.year, d.month, d.day, tzinfo=berlin)
+
+    def day_end(d):
+        return dt.datetime(d.year, d.month, d.day, 23, 59, 59, tzinfo=berlin)
+
+    windows = [(f"{a}_{b}", max(earliest, day_start(a)), day_end(b)) for i, a in enumerate(days) for b in days[i:]]
+    st_opt, st_eval = col_stats(raw_opt), col_stats(raw_eval)
+    st_opt_d, st_eval_d = col_stats(raw_opt_d), col_stats(raw_eval_d)
 
     # Schalter "fragliche Spieler": "ohne" (Standard) schließt sie aus, "mit" lässt sie zu
     suggestions = {}
@@ -537,13 +588,38 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
     for T in targets:
         suggestions[str(T)] = {}
         variants[str(T)] = {}
-        for d_label, d_end in deadlines:
-            usable_keys = {(it["player"], it["game"]) for it in items
-                           if earliest <= M.parse_date(it["date"]) <= d_end}
+        for key, w0, w1 in windows:
+            usable_keys = {(it["player"], it["game"]) for it, d in zip(items, it_dt) if w0 <= d <= w1}
             free_with = {k: (v if k in usable_keys else 0) for k, v in card_free.items()}
             free_without = {k: (0 if k in doubtful_keys else v) for k, v in free_with.items()}
-            suggestions[str(T)][d_label] = suggest(raw_opt, raw_eval, bonus, items, T, free_without, n_opt, n_eval)
-            variants[str(T)][d_label] = suggest(raw_opt_d, raw_eval_d, bonus, items, T, free_with, n_opt, n_eval)
+            suggestions[str(T)][key] = suggest(raw_opt, raw_eval, st_opt, st_eval, bonus, items, T, free_without, n_opt, n_eval)
+            if usable_keys & doubtful_keys:
+                variants[str(T)][key] = suggest(raw_opt_d, raw_eval_d, st_opt_d, st_eval_d, bonus, items, T, free_with,
+                                                n_opt, n_eval)
+            else:  # kein fraglicher Spieler im Fenster -> beide Varianten identisch (gleiche Szenarien)
+                variants[str(T)][key] = suggestions[str(T)][key]
+
+    # Top-Matchups: Quoten je Team, Form, Fynns stärkste Karten im Spiel
+    by_team_game = defaultdict(list)
+    for j, it in enumerate(items):
+        if not it.get("out"):
+            by_team_game[(it["game"], it["team"])].append(j)
+    matchups = []
+    for g in games:
+        if g["statusTyped"] != "scheduled":
+            continue
+        sides = {side: team_odds(g.get(f"{side}Stats")) for side in ("home", "away")}
+        for side, other in (("home", "away"), ("away", "home")):
+            t = g[f"{side}Team"]
+            o = sides[side]
+            # erwartete Tore aus den Quoten: P(Team trifft nicht) = Zu-null-Chance des Gegners; Poisson -> λ = −ln P
+            cs_opp = sides[other]["cs"]
+            o["xg"] = round(float(-np.log(cs_opp)), 2) if cs_opp else None
+            o.update({"slug": t["slug"], "name": t["name"], "form": form.get(t["slug"]),
+                      "cards": sorted(by_team_game.get((g["id"], t["slug"]), []), key=lambda j: -items[j]["mean"])[:3]})
+        matchups.append({"game": g["id"], "date": g["date"],
+                         "comp": g["competition"].get("name") or g["competition"]["slug"],
+                         "home": sides["home"], "away": sides["away"]})
 
     # Gestellte Aufstellungen: Live-Chance + Tauschvorschläge
     card_lookup = {c["card"]: c for lst in cards.values() for c in lst}
@@ -587,7 +663,7 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
             free = dict(card_free)
             for i in idx:  # eigene Karten wieder freigeben
                 free[(items[i]["player"], items[i]["game"])] += 1
-            alts = alternatives(raw_eval, bonus, items, {"idx": idx, "captain": idx[capt_pos]}, T, free, k=1)
+            alts = alternatives(raw_eval, bonus, items, {"idx": idx, "captain": idx[capt_pos]}, T, free, st_eval, k=1)
             for a_ in alts:
                 if a_["options"] and a_["options"][0]["delta"] >= 0.02:
                     entry_lu["swaps"].append({"slot": a_["slot"], "out": a_["current"], **a_["options"][0]})
@@ -646,6 +722,7 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
         "items": [{k: v for k, v in it.items() if k not in ("team", "opponent")} for it in items],
         "suggestions": suggestions, "suggestions_with_doubtful": variants,
         "my_lineups": my_lineups, "notifications": old_notes[-50:],
+        "days": [str(d) for d in days], "matchups": matchups,
     }
     os.makedirs(OUT_DIR, exist_ok=True)
     with open(os.path.join(OUT_DIR, "result.json"), "w") as f:
@@ -653,12 +730,12 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
     # Vorhersagen protokollieren, damit später die Trefferquote berechnet werden kann
     if not offline:
         with open(os.path.join(BASE, "data", "predictions_log.jsonl"), "a") as f:
-            for T, by_day in suggestions.items():
-                if not by_day:
+            full = f"{days[0]}_{days[-1]}" if days else None  # Protokoll nur für das Fenster über alle Tage
+            for T, by_win in suggestions.items():
+                if full not in by_win:
                     continue
-                d_last = max(by_day)  # Protokoll nur für "alle Tage"
-                for k, l in enumerate(by_day[d_last]["lineups"]):
-                    f.write(json.dumps({"time": ts.isoformat(), "target": int(T), "until": d_last, "rank": k + 1, "p": l["p"],
+                for k, l in enumerate(by_win[full]["lineups"]):
+                    f.write(json.dumps({"time": ts.isoformat(), "target": int(T), "window": full, "rank": k + 1, "p": l["p"],
                                         "players": [{"player": items[p["item"]]["player"], "game": items[p["item"]]["game"],
                                                      "mult": round(1 + items[p["item"]]["bonus"] + (0.5 if p["captain"] else 0), 3)}
                                                     for p in l["players"]]}) + "\n")
