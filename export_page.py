@@ -105,6 +105,8 @@ def main():
                      "p10": it["p10"], "p90": it["p90"], "pp": it.get("p_play"), "p100": it["p100"],
                      "proj": it["proj"], "av": it["avail"], "why": it["why"], "nc": it["n_cards"],
                      "dbt": 1 if it.get("doubtful") else 0, "inj": it.get("injury")}
+        if it.get("doubtful"):  # Werte für den Schalter "fragliche Spieler als fit einplanen"
+            packed[j].update({"mf": it.get("mean_fit"), "ppf": it.get("p_play_fit"), "cf": it.get("p100_fit")})
 
     # Backtest-Kennzahlen (Modus "spät" und "früh") als Vertrauensanker, bis echte Trefferquote vorliegt
     bt = {}

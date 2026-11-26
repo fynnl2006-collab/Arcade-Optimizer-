@@ -220,7 +220,11 @@ def simulate_hybrid(models, items, n_scen, seed, doubtful_fit=False):
     for j, it in enumerate(items):
         m = models[it["avail"]]
         gg = m.group(it)
-        factor = 1.0 if (doubtful_fit and it.get("doubtful")) else it.get("pp_factor", 1.0)
+        fit = doubtful_fit and it.get("doubtful")
+        if fit and it["avail"] == "form":
+            # "als fit einplanen": wie ein Stammspieler – die Verletzungspause soll die Form-Gruppe nicht drücken
+            gg = "stamm"
+        factor = 1.0 if fit else it.get("pp_factor", 1.0)
         pp = m.p_play.get((it["pos"], gg), 0.7) * factor
         u = norm.cdf(m.rho * z[:, kidx[(it["game"], it["team"])]] + np.sqrt(1 - m.rho ** 2) * rng.standard_normal(n_scen))
         plays = rng.random(n_scen) < pp
@@ -229,6 +233,8 @@ def simulate_hybrid(models, items, n_scen, seed, doubtful_fit=False):
         raw[:, j] = np.where(plays, np.clip(vals, 0, M.MAX_SCORE), 0.0)
         if not doubtful_fit:
             it["p_play"] = round(float(pp), 3)
+        elif fit:
+            it["p_play_fit"] = round(float(pp), 3)
     return raw
 
 
@@ -529,6 +535,10 @@ def run(n_opt=15000, n_eval=30000, targets=None, offline=False):
         it["p10"] = round(float(np.quantile(counted_eval[:, j], 0.1)), 1)
         it["p90"] = round(float(np.quantile(counted_eval[:, j], 0.9)), 1)
         it["p100"] = round(float(np.mean(raw_eval[:, j] >= 99.99)), 4)
+        if it.get("doubtful"):  # Werte, wenn er als fit eingeplant wird (Schalter "fragliche Spieler")
+            col = raw_eval_d[:, j] * (1 + bonus[j])
+            it["mean_fit"] = round(float(col.mean()), 1)
+            it["p100_fit"] = round(float(np.mean(raw_eval_d[:, j] >= 99.99)), 4)
         it["why"] = explain(it, defense)
 
     # Karten, die schon in gestellten Aufstellungen für ein Spiel stecken
